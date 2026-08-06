@@ -189,6 +189,37 @@ body {
   gap: 4px;
 }
 
+.sidebar-nested-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.sidebar-nested-btn:hover {
+  color: #f1f5f9;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-nested-icon {
+  flex-shrink: 0;
+  color: #94a3b8;
+}
+
+.sidebar-nested-btn:hover .sidebar-nested-icon {
+  color: #f1f5f9;
+}
+
 .sidebar-sub-btn {
   width: 100%;
   display: flex;

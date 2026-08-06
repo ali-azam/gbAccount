@@ -15,6 +15,23 @@ import AccountNoteForm, { AccountNoteData } from "@/components/AccountNoteForm";
 import AccountNoteList from "@/components/AccountNoteList";
 import BudgetParticular, { BudgetParticularData } from "@/components/BudgetParticular";
 import TargetAchievement, { TargetAchievementData } from "@/components/TargetAchievement";
+import VoucherReport from "@/components/VoucherReport";
+import GeneralLedgerReport from "@/components/GeneralLedgerReport";
+import CashBookReport from "@/components/CashBookReport";
+
+// Account Reports sub-menu keys mapped to their display titles
+const REPORT_TITLES: Record<string, string> = {
+  "report-vouchers": "Vouchers",
+  "report-general-ledger": "General Ledger",
+  "report-cash-book": "Cash Book",
+};
+
+// Breadcrumb middle segment per report page
+const REPORT_CRUMBS: Record<string, string> = {
+  "report-vouchers": "AccVoucherReport",
+  "report-general-ledger": "AccGeneralLedger",
+  "report-cash-book": "AccCashBook",
+};
 
 export default function Home() {
   const [activeSubMenu, setActiveSubMenu] = useState<string>("voucher-entry");
@@ -173,6 +190,8 @@ export default function Home() {
     setVouchers((prev) => prev.filter((v) => v.id !== id));
   };
 
+  const isReportMenu = activeSubMenu in REPORT_TITLES;
+
   return (
     <div className="app-container">
       {/* Left Sidebar */}
@@ -190,7 +209,17 @@ export default function Home() {
           <div className="app-container items-center" style={{ minHeight: "auto", justifyContent: "space-between", background: "none" }}>
             {/* Breadcrumb */}
             <nav className="breadcrumb-nav">
-              {activeSubMenu === "reconcile-entries" ? (
+              {isReportMenu ? (
+                <>
+                  <span className="breadcrumb-item">Home</span>
+                  <span className="breadcrumb-item">/</span>
+                  <span className="breadcrumb-item active">
+                    {REPORT_CRUMBS[activeSubMenu]}
+                  </span>
+                  <span className="breadcrumb-item">/</span>
+                  <span className="breadcrumb-item current">Index</span>
+                </>
+              ) : activeSubMenu === "reconcile-entries" ? (
                 <>
                   <span className="breadcrumb-item">Home</span>
                   <span className="breadcrumb-item">/</span>
@@ -256,7 +285,7 @@ export default function Home() {
             </nav>
 
             {/* Back to List / Add New Toggle */}
-            {activeSubMenu === "reconcile-entries" || activeSubMenu === "account-note" || activeSubMenu === "budget-particular" || activeSubMenu === "target-achievement" ? null : activeSubMenu === "budget-create" ? (
+            {activeSubMenu === "reconcile-entries" || isReportMenu || activeSubMenu === "account-note" || activeSubMenu === "budget-particular" || activeSubMenu === "target-achievement" ? null : activeSubMenu === "budget-create" ? (
               <button
                 onClick={() => {
                   setBudgetView(budgetView === "create" ? "list" : "create");
@@ -291,7 +320,20 @@ export default function Home() {
 
         {/* Content Area */}
         <main className="main-content">
-          {activeSubMenu === "target-achievement" ? (
+          {isReportMenu ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <div className="flex-between-header">
+                <h1 className="page-title">{REPORT_TITLES[activeSubMenu]}</h1>
+              </div>
+              {activeSubMenu === "report-vouchers" ? (
+                <VoucherReport vouchers={vouchers} />
+              ) : activeSubMenu === "report-general-ledger" ? (
+                <GeneralLedgerReport />
+              ) : (
+                <CashBookReport />
+              )}
+            </div>
+          ) : activeSubMenu === "target-achievement" ? (
             <TargetAchievement
               targets={targets}
               particulars={particulars}

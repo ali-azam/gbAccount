@@ -10,6 +10,8 @@ import {
   CreditCard,
   FileText,
   CheckCircle,
+  Plus,
+  Minus,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -19,6 +21,8 @@ interface SidebarProps {
 
 export default function Sidebar({ activeSubMenu, onSelectMenu }: SidebarProps) {
   const [accountOpen, setAccountOpen] = useState(true);
+  const [entriesOpen, setEntriesOpen] = useState(true);
+  const [reportsOpen, setReportsOpen] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
@@ -83,12 +87,20 @@ export default function Sidebar({ activeSubMenu, onSelectMenu }: SidebarProps) {
             {accountOpen && (
               <div className="sidebar-sub-menu">
                 {/* Nested Header: Account Entries */}
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 12px", fontSize: "12px", fontWeight: "600", color: "#94a3b8" }}>
-                  <span style={{ width: "6px", height: "6px", border: "1.5px solid #94a3b8", borderRadius: "50%" }}></span>
+                <button
+                  onClick={() => setEntriesOpen(!entriesOpen)}
+                  className="sidebar-nested-btn"
+                >
+                  {entriesOpen ? (
+                    <Minus size={12} className="sidebar-nested-icon" />
+                  ) : (
+                    <Plus size={12} className="sidebar-nested-icon" />
+                  )}
                   <span>Account Entries</span>
-                </div>
+                </button>
 
-                <div style={{ paddingLeft: "14px", display: "flex", flexDirection: "column", gap: "4px" }}>
+                {entriesOpen && (
+                <div style={{ paddingLeft: "26px", display: "flex", flexDirection: "column", gap: "4px" }}>
                   {/* Chart Of Accounts */}
                   <button
                     onClick={() => {
@@ -166,6 +178,57 @@ export default function Sidebar({ activeSubMenu, onSelectMenu }: SidebarProps) {
                     <span>Target Achievement</span>
                   </button>
                 </div>
+                )}
+
+                {/* Nested Header: Account Reports */}
+                <button
+                  onClick={() => setReportsOpen(!reportsOpen)}
+                  className="sidebar-nested-btn"
+                >
+                  {reportsOpen ? (
+                    <Minus size={12} className="sidebar-nested-icon" />
+                  ) : (
+                    <Plus size={12} className="sidebar-nested-icon" />
+                  )}
+                  <span>Account Reports</span>
+                </button>
+
+                {reportsOpen && (
+                  <div style={{ paddingLeft: "26px", display: "flex", flexDirection: "column", gap: "4px" }}>
+                    {/* Vouchers */}
+                    <button
+                      onClick={() => {
+                        onSelectMenu("report-vouchers");
+                        setMobileOpen(false);
+                      }}
+                      className={`sidebar-sub-btn ${activeSubMenu === "report-vouchers" ? "active" : ""}`}
+                    >
+                      <span>Vouchers</span>
+                    </button>
+
+                    {/* General Ledger */}
+                    <button
+                      onClick={() => {
+                        onSelectMenu("report-general-ledger");
+                        setMobileOpen(false);
+                      }}
+                      className={`sidebar-sub-btn ${activeSubMenu === "report-general-ledger" ? "active" : ""}`}
+                    >
+                      <span>General Ledger</span>
+                    </button>
+
+                    {/* Cash Book */}
+                    <button
+                      onClick={() => {
+                        onSelectMenu("report-cash-book");
+                        setMobileOpen(false);
+                      }}
+                      className={`sidebar-sub-btn ${activeSubMenu === "report-cash-book" ? "active" : ""}`}
+                    >
+                      <span>Cash Book</span>
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>

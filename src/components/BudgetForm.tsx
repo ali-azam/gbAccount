@@ -99,7 +99,7 @@ export default function BudgetForm({ onSaveBudget, onBackToList }: BudgetFormPro
   };
 
   return (
-    <div className="card" style={{ maxWidth: "960px", position: "relative" }}>
+    <div className="card" style={{ maxWidth: "100%", position: "relative" }}>
       {/* Toast Notification Bar */}
       {toastMessage && (
         <div className="toast-container" style={{ marginBottom: "20px" }}>
