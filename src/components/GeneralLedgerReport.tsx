@@ -265,10 +265,10 @@ export default function GeneralLedgerReport() {
               className="form-select"
             >
               <option value="">Select None</option>
-              <option value="">1 - Property & Assets</option>
-              <option value="">3 - Fund & Liabilities</option>
-              <option value="">5 - Expenditure</option>
-              <option value="">9 - Income</option>
+              <option value="pro&asset">1 - Property & Assets</option>
+              <option value="fund&liabi">3 - Fund & Liabilities</option>
+              <option value="expenditure">5 - Expenditure</option>
+              <option value="income">9 - Income</option>
             </select>
           </div>
 
