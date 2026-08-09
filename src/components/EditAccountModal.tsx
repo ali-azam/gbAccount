@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { AccountData } from "./AccountForm";
 import { X } from "lucide-react";
+import { MODULES, OFFICE_LEVELS, ACCOUNT_NOTES, NOTE_PLACEHOLDER } from "@/lib/lookups";
+import { useCategories } from "@/lib/useCategories";
 
 interface EditAccountModalProps {
   account: AccountData;
@@ -18,6 +20,11 @@ export default function EditAccountModal({
   onSave,
 }: EditAccountModalProps) {
   const [formData, setFormData] = useState<AccountData>(account);
+  const {
+    categories,
+    loading: categoriesLoading,
+    error: categoriesError,
+  } = useCategories();
 
   useEffect(() => {
     setFormData(account);
@@ -100,10 +107,11 @@ export default function EditAccountModal({
               className="form-select"
               style={{ fontSize: "12px", padding: "4px 8px" }}
             >
-              <option value="Branch Office">Branch Office</option>
-              <option value="Head Office">Head Office</option>
-              <option value="Regional Office">Regional Office</option>
-              <option value="Zonal Office">Zonal Office</option>
+              {OFFICE_LEVELS.map((office) => (
+                <option key={office.id} value={office.name}>
+                  {office.name}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -118,12 +126,39 @@ export default function EditAccountModal({
               className="form-select"
               style={{ fontSize: "12px", padding: "4px 8px" }}
             >
-              <option value="Accounting">Accounting</option>
-              <option value="Inventory">Inventory</option>
-              <option value="Sales">Sales</option>
-              <option value="Purchase">Purchase</option>
-              <option value="Payroll">Payroll</option>
+              {MODULES.map((mod) => (
+                <option key={mod.id} value={mod.name}>
+                  {mod.name}
+                </option>
+              ))}
             </select>
+          </div>
+
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="form-label" style={{ fontSize: "12px", marginBottom: "4px" }}>
+              Category
+            </label>
+            <select
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+              className="form-select"
+              style={{ fontSize: "12px", padding: "4px 8px" }}
+            >
+              <option value={NOTE_PLACEHOLDER}>
+                {categoriesLoading ? "Loading..." : NOTE_PLACEHOLDER}
+              </option>
+              {categories.map((cat) => (
+                <option key={cat.CategoryID} value={cat.CategoryName ?? ""}>
+                  {cat.CategoryName}
+                </option>
+              ))}
+            </select>
+            {categoriesError && (
+              <p className="error-message" style={{ fontSize: "11px" }}>
+                Could not load categories: {categoriesError}
+              </p>
+            )}
           </div>
 
           <div className="form-group" style={{ marginBottom: 0 }}>
@@ -137,11 +172,12 @@ export default function EditAccountModal({
               className="form-select"
               style={{ fontSize: "12px", padding: "4px 8px" }}
             >
-              <option value="Select None">Select None</option>
-              <option value="Please Select">Please Select</option>
-              <option value="General Ledger">General Ledger</option>
-              <option value="Sub Ledger">Sub Ledger</option>
-              <option value="Operating Account">Operating Account</option>
+              <option value={NOTE_PLACEHOLDER}>{NOTE_PLACEHOLDER}</option>
+              {ACCOUNT_NOTES.map((note) => (
+                <option key={note.id} value={note.name}>
+                  {note.name}
+                </option>
+              ))}
             </select>
           </div>
 

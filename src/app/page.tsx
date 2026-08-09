@@ -18,6 +18,7 @@ import TargetAchievement, { TargetAchievementData } from "@/components/TargetAch
 import VoucherReport from "@/components/VoucherReport";
 import GeneralLedgerReport from "@/components/GeneralLedgerReport";
 import CashBookReport from "@/components/CashBookReport";
+import { useAccounts } from "@/lib/useAccounts";
 
 // Account Reports sub-menu keys mapped to their display titles
 const REPORT_TITLES: Record<string, string> = {
@@ -41,49 +42,13 @@ export default function Home() {
   const [voucherView, setVoucherView] = useState<"create" | "list">("create");
   const [editingVoucher, setEditingVoucher] = useState<VoucherData | null>(null);
 
-  // Account Data State
-  const [accounts, setAccounts] = useState<AccountData[]>([
-    {
-      id: "1",
-      sl: 1,
-      parentCode: "1000",
-      newCode: "1001",
-      accountHead: "Cash in Hand",
-      level: 1,
-      first: "1000 - Asset",
-      second: "1001 - Current Asset",
-      third: "Cash & Bank",
-      fourth: "-",
-      fifth: "-",
-      isTransaction: true,
-      nature: "Debit",
-      officeLevel: "Branch Office",
-      module: "Accounting",
-      category: "Asset",
-      note: "General Ledger",
-      createdAt: "2026-07-23",
-    },
-    {
-      id: "2",
-      sl: 2,
-      parentCode: "1000",
-      newCode: "1002",
-      accountHead: "Petty Cash",
-      level: 1,
-      first: "1000 - Asset",
-      second: "1001 - Current Asset",
-      third: "Petty Cash Account",
-      fourth: "-",
-      fifth: "-",
-      isTransaction: true,
-      nature: "Debit",
-      officeLevel: "Branch Office",
-      module: "Accounting",
-      category: "Asset",
-      note: "Operating Account",
-      createdAt: "2026-07-23",
-    },
-  ]);
+  // Account Data State — loaded from the database via /api/accounts
+  const {
+    accounts,
+    setAccounts,
+    loading: accountsLoading,
+    error: accountsError,
+  } = useAccounts();
 
   // Voucher Data State — persisted to localStorage
   const [vouchers, setVouchers] = useState<VoucherData[]>(() => {
@@ -452,6 +417,8 @@ export default function Home() {
             ) : (
               <AccountList
                 accounts={accounts}
+                loading={accountsLoading}
+                error={accountsError}
                 onCreateNew={() => {
                   setAccountView("create");
                   setEditingAccount(null);

@@ -2,6 +2,15 @@
 
 import React, { useState, useEffect } from "react";
 import { Check, RefreshCw } from "lucide-react";
+import {
+  MODULES,
+  DEFAULT_MODULE,
+  OFFICE_LEVELS,
+  DEFAULT_OFFICE_LEVEL,
+  ACCOUNT_NOTES,
+  NOTE_PLACEHOLDER,
+} from "@/lib/lookups";
+import { useCategories } from "@/lib/useCategories";
 
 export interface AccountData {
   id: string;
@@ -31,6 +40,12 @@ interface AccountFormProps {
 }
 
 export default function AccountForm({ onSaveAccount, onBackToList, initialData }: AccountFormProps) {
+  const {
+    categories,
+    loading: categoriesLoading,
+    error: categoriesError,
+  } = useCategories();
+
   const [formData, setFormData] = useState({
     parentCode: "",
     newCode: "",
@@ -38,10 +53,10 @@ export default function AccountForm({ onSaveAccount, onBackToList, initialData }
     level: 0,
     isTransaction: true,
     nature: "",
-    module: "Accounting",
-    officeLevel: "Branch Office",
-    category: "Please Select",
-    note: "Please Select",
+    module: DEFAULT_MODULE,
+    officeLevel: DEFAULT_OFFICE_LEVEL,
+    category: NOTE_PLACEHOLDER,
+    note: NOTE_PLACEHOLDER,
   });
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -69,10 +84,10 @@ export default function AccountForm({ onSaveAccount, onBackToList, initialData }
         level: 0,
         isTransaction: true,
         nature: "",
-        module: "Accounting",
-        officeLevel: "Branch Office",
-        category: "Please Select",
-        note: "Please Select",
+        module: DEFAULT_MODULE,
+        officeLevel: DEFAULT_OFFICE_LEVEL,
+        category: NOTE_PLACEHOLDER,
+        note: NOTE_PLACEHOLDER,
       });
     }
   }, [initialData]);
@@ -124,7 +139,7 @@ export default function AccountForm({ onSaveAccount, onBackToList, initialData }
       id: initialData ? initialData.id : Date.now().toString(),
       sl: initialData ? initialData.sl : undefined,
       first: formData.parentCode ? formData.parentCode : "-",
-      second: formData.category !== "Please Select" ? formData.category : "-",
+      second: formData.category !== NOTE_PLACEHOLDER ? formData.category : "-",
       third: formData.nature ? formData.nature : "-",
       fourth: "-",
       fifth: "-",
@@ -144,8 +159,8 @@ export default function AccountForm({ onSaveAccount, onBackToList, initialData }
       newCode: "",
       accountHead: "",
       nature: "",
-      category: "Please Select",
-      note: "Please Select",
+      category: NOTE_PLACEHOLDER,
+      note: NOTE_PLACEHOLDER,
     }));
   };
 
@@ -284,12 +299,11 @@ export default function AccountForm({ onSaveAccount, onBackToList, initialData }
               onChange={handleChange}
               className="form-select"
             >
-              <option value="Accounting">Accounting</option>
-              <option value="Inventory">Inventory</option>
-              <option value="Sales">Sales</option>
-              <option value="Purchase">Purchase</option>
-              <option value="Payroll">Payroll</option>
-              <option value="Fixed Assets">Fixed Assets</option>
+              {MODULES.map((mod) => (
+                <option key={mod.id} value={mod.name}>
+                  {mod.name}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -304,10 +318,11 @@ export default function AccountForm({ onSaveAccount, onBackToList, initialData }
               onChange={handleChange}
               className="form-select"
             >
-              <option value="Branch Office">Branch Office</option>
-              <option value="Head Office">Head Office</option>
-              <option value="Regional Office">Regional Office</option>
-              <option value="Zonal Office">Zonal Office</option>
+              {OFFICE_LEVELS.map((office) => (
+                <option key={office.id} value={office.name}>
+                  {office.name}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -323,13 +338,18 @@ export default function AccountForm({ onSaveAccount, onBackToList, initialData }
               onChange={handleChange}
               className="form-select"
             >
-              <option value="Please Select">Please Select</option>
-              <option value="Asset">Asset</option>
-              <option value="Liability">Liability</option>
-              <option value="Equity">Equity</option>
-              <option value="Revenue">Revenue</option>
-              <option value="Expense">Expense</option>
+              <option value={NOTE_PLACEHOLDER}>
+                {categoriesLoading ? "Loading..." : NOTE_PLACEHOLDER}
+              </option>
+              {categories.map((cat) => (
+                <option key={cat.CategoryID} value={cat.CategoryName ?? ""}>
+                  {cat.CategoryName}
+                </option>
+              ))}
             </select>
+            {categoriesError && (
+              <p className="error-message">Could not load categories: {categoriesError}</p>
+            )}
           </div>
 
           <div className="form-group">
@@ -343,11 +363,12 @@ export default function AccountForm({ onSaveAccount, onBackToList, initialData }
               onChange={handleChange}
               className="form-select"
             >
-              <option value="Please Select">Please Select</option>
-              <option value="General Ledger">General Ledger</option>
-              <option value="Sub Ledger">Sub Ledger</option>
-              <option value="Control Account">Control Account</option>
-              <option value="Operating Account">Operating Account</option>
+              <option value={NOTE_PLACEHOLDER}>{NOTE_PLACEHOLDER}</option>
+              {ACCOUNT_NOTES.map((note) => (
+                <option key={note.id} value={note.name}>
+                  {note.name}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -372,10 +393,10 @@ export default function AccountForm({ onSaveAccount, onBackToList, initialData }
                 level: 0,
                 isTransaction: true,
                 nature: "",
-                module: "Accounting",
-                officeLevel: "Branch Office",
-                category: "Please Select",
-                note: "Please Select",
+                module: DEFAULT_MODULE,
+                officeLevel: DEFAULT_OFFICE_LEVEL,
+                category: NOTE_PLACEHOLDER,
+                note: NOTE_PLACEHOLDER,
               });
               setErrors({});
             }}

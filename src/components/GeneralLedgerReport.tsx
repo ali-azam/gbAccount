@@ -51,7 +51,7 @@ export default function GeneralLedgerReport() {
 
   const handleView = (e: React.FormEvent) => {
     e.preventDefault();
-    // No ledger data source wired yet — show the empty state.
+    // No ledger data source wired yet
     setResults([]);
   };
 
