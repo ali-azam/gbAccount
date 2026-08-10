@@ -177,6 +177,17 @@ export default function Sidebar({ activeSubMenu, onSelectMenu }: SidebarProps) {
                   >
                     <span>Target Achievement</span>
                   </button>
+
+                  {/* Fund Transfer */}
+                  <button
+                    onClick={() => {
+                      onSelectMenu("fund-transfer");
+                      setMobileOpen(false);
+                    }}
+                    className={`sidebar-sub-btn ${activeSubMenu === "fund-transfer" ? "active" : ""}`}
+                  >
+                    <span>Fund Transfer</span>
+                  </button>
                 </div>
                 )}
 

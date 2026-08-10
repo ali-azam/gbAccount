@@ -7,7 +7,7 @@ const globalForPrisma = globalThis as unknown as {
 
 const adapter = new PrismaMssql({
   server: process.env.DB_SERVER ?? "localhost",
-  port: Number(process.env.DB_PORT) || 1433,
+  port: process.env.DB_PORT ? Number(process.env.DB_PORT) : (process.env.DB_INSTANCE_NAME ? undefined : 1433),
   database: process.env.DB_NAME ?? "GbAccount",
 
   authentication: {
@@ -21,6 +21,7 @@ const adapter = new PrismaMssql({
   options: {
     encrypt: process.env.DB_ENCRYPT === "true",
     trustServerCertificate: process.env.DB_TRUST_SERVER_CERT !== "false",
+    instanceName: process.env.DB_INSTANCE_NAME || undefined,
   },
 });
 
