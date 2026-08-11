@@ -1,7 +1,6 @@
 # Next.js
 node_modules/
 .next/
-/src/generated/prisma
 tsconfig.tsbuildinfo
 
 # Environment
@@ -18,3 +17,16 @@ tsconfig.tsbuildinfo
 .agents/
 .windsurf/
 skills-lock.json
+
+# .NET build artifacts
+bin/
+obj/
+*.user
+
+# Visual Studio local cache — per-developer solution state, not project code
+.vs/
+
+# ASP.NET Core local config — holds real DB credentials.
+# Commit appsettings.Development.json.example instead.
+appsettings.Development.json
+appsettings.Production.json

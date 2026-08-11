@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { apiUrl } from "./apiConfig";
 
 export interface CategoryOption {
   CategoryID: number;
@@ -14,7 +15,7 @@ interface UseCategoriesResult {
 }
 
 /**
- * Loads account categories from the database via /api/categories.
+ * Loads account categories from the GbAccount.Api backend (/api/categories).
  *
  * Categories are a real table (AccCategory), so the options come from live data
  * rather than a hardcoded list. Falls back to an empty list on failure — callers
@@ -30,7 +31,7 @@ export function useCategories(): UseCategoriesResult {
 
     async function load() {
       try {
-        const res = await fetch("/api/categories");
+        const res = await fetch(apiUrl("/api/categories"));
         const json = await res.json();
 
         if (cancelled) return;

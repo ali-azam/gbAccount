@@ -1,0 +1,20 @@
+{
+  "//": "Copy this file to appsettings.Development.json and fill in your values. That file is gitignored because it holds real credentials.",
+
+  "ConnectionStrings": {
+    "GbAccount": "Server=YOUR_SERVER,1433;Database=gbAccount;User Id=YOUR_USER;Password=YOUR_PASSWORD;Encrypt=False;TrustServerCertificate=True;MultipleActiveResultSets=True;"
+  },
+
+  "//Cors": "Origins allowed to call this API. Add the port your Next.js dev server actually uses.",
+  "Cors": {
+    "AllowedOrigins": [ "http://localhost:3000", "http://localhost:3001" ]
+  },
+
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning",
+      "Microsoft.EntityFrameworkCore.Database.Command": "Warning"
+    }
+  }
+}

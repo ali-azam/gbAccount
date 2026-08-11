@@ -8,8 +8,9 @@ import {
   noteLabel,
   natureLabel,
 } from "./lookups";
+import { apiUrl } from "./apiConfig";
 
-/** Shape of an AccChart row as returned by /api/accounts. */
+/** Shape of an AccChart row as returned by the API's /api/accounts. */
 interface AccChartRow {
   AccID: number;
   AccCode: string;
@@ -71,7 +72,7 @@ interface UseAccountsResult {
 }
 
 /**
- * Loads the chart of accounts from /api/accounts.
+ * Loads the chart of accounts from the GbAccount.Api backend (/api/accounts).
  *
  * setAccounts is exposed so the existing create/edit/delete handlers keep
  * working against local state until those paths are wired to the API.
@@ -90,7 +91,7 @@ export function useAccounts(): UseAccountsResult {
 
     async function load() {
       try {
-        const res = await fetch("/api/accounts");
+        const res = await fetch(apiUrl("/api/accounts"));
         const json = await res.json();
 
         if (cancelled) return;
