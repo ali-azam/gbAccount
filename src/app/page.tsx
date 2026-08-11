@@ -19,6 +19,7 @@ import VoucherReport from "@/components/VoucherReport";
 import GeneralLedgerReport from "@/components/GeneralLedgerReport";
 import CashBookReport from "@/components/CashBookReport";
 import { useAccounts } from "@/lib/useAccounts";
+import FundTransfer from "@/components/FundTransfer";
 
 // Account Reports sub-menu keys mapped to their display titles
 const REPORT_TITLES: Record<string, string> = {
@@ -216,6 +217,14 @@ export default function Home() {
                   <span className="breadcrumb-item">/</span>
                   <span className="breadcrumb-item current">CreateParticular</span>
                 </>
+              ) : activeSubMenu === "fund-transfer" ? (
+                <>
+                  <span className="breadcrumb-item">Home</span>
+                  <span className="breadcrumb-item">/</span>
+                  <span className="breadcrumb-item active">FundTransfer</span>
+                  <span className="breadcrumb-item">/</span>
+                  <span className="breadcrumb-item current">Index</span>
+                </>
               ) : activeSubMenu === "account-note" ? (
                 <>
                   <span className="breadcrumb-item active">Home</span>
@@ -250,7 +259,7 @@ export default function Home() {
             </nav>
 
             {/* Back to List / Add New Toggle */}
-            {activeSubMenu === "reconcile-entries" || isReportMenu || activeSubMenu === "account-note" || activeSubMenu === "budget-particular" || activeSubMenu === "target-achievement" ? null : activeSubMenu === "budget-create" ? (
+            {activeSubMenu === "reconcile-entries" || isReportMenu || activeSubMenu === "account-note" || activeSubMenu === "budget-particular" || activeSubMenu === "target-achievement" || activeSubMenu === "fund-transfer" ? null : activeSubMenu === "budget-create" ? (
               <button
                 onClick={() => {
                   setBudgetView(budgetView === "create" ? "list" : "create");
@@ -328,6 +337,8 @@ export default function Home() {
                 setParticulars((prev) => prev.map((p) => p.id === id ? { ...p, particularName: name } : p));
               }}
             />
+          ) : activeSubMenu === "fund-transfer" ? (
+            <FundTransfer />
           ) : activeSubMenu === "account-note" ? (
             accountNoteView === "create" ? (
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
