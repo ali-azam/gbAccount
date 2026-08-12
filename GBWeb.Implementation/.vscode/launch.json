@@ -1,0 +1,27 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "▶ Run & Debug API (Chrome)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/src/GBWeb.Implementation.Api/bin/Debug/net9.0/GBWeb.Implementation.Api.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/src/GBWeb.Implementation.Api",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "debugWithChrome",
+                "pattern": "Now listening on:\\s+(https://\\S+)",
+                "uriFormat": "%s/swagger"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_URLS": "https://localhost:7201;http://localhost:5201"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Views"
+            }
+        }
+    ]
+}

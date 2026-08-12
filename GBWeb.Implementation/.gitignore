@@ -1,0 +1,13 @@
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.dbmdl
+*.jfm
+TestResults/
+artifacts/
+.env
+.dotnet-home/
+.artifacts/
+appsettings.Production.json

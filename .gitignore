@@ -1,32 +1,3 @@
 # Next.js
-node_modules/
-.next/
-tsconfig.tsbuildinfo
-
-# Environment
-.env
-.env*.local
-
-# Editor / tooling
-.vscode/
-.idea/
-*.log
-
-# AI assistant tooling — local developer setup, not project code
-.claude/
-.agents/
-.windsurf/
-skills-lock.json
-
-# .NET build artifacts
-bin/
-obj/
-*.user
-
-# Visual Studio local cache — per-developer solution state, not project code
-.vs/
-
-# ASP.NET Core local config — holds real DB credentials.
-# Commit appsettings.Development.json.example instead.
-appsettings.Development.json
-appsettings.Production.json
+gbAccount_Web/node_modules/
+gbAccount_Web/.next/
