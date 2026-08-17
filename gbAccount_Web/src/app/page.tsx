@@ -19,6 +19,7 @@ import VoucherReport from "@/components/VoucherReport";
 import GeneralLedgerReport from "@/components/GeneralLedgerReport";
 import CashBookReport from "@/components/CashBookReport";
 import { useAccounts } from "@/lib/useAccounts";
+import { useVouchers } from "@/lib/useVouchers";
 import FundTransfer from "@/components/FundTransfer";
 
 // Account Reports sub-menu keys mapped to their display titles
@@ -51,20 +52,18 @@ export default function Home() {
     error: accountsError,
   } = useAccounts();
 
-  // Voucher Data State — persisted to localStorage
-  const [vouchers, setVouchers] = useState<VoucherData[]>(() => {
-    if (typeof window === "undefined") return [];
-    try {
-      const saved = localStorage.getItem("vouchers");
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [voucherSearch, setVoucherSearch] = useState("");
+  const [voucherFilterBy, setVoucherFilterBy] = useState("View All");
 
-  useEffect(() => {
-    localStorage.setItem("vouchers", JSON.stringify(vouchers));
-  }, [vouchers]);
+  // Voucher Data State — loaded from the database via /api/vouchers
+  const {
+    vouchers,
+    setVouchers,
+    saveVoucher,
+    deleteVoucher,
+    loading: vouchersLoading,
+    error: vouchersError,
+  } = useVouchers(voucherSearch, voucherFilterBy);
 
   // Budget Data State
   const [budgets, setBudgets] = useState<BudgetData[]>([]);
@@ -138,13 +137,11 @@ export default function Home() {
     }
   };
 
-  const handleSaveVoucher = (newVoucher: VoucherData) => {
-    if (editingVoucher) {
-      setVouchers((prev) => prev.map((v) => (v.id === newVoucher.id ? newVoucher : v)));
+  const handleSaveVoucher = async (newVoucher: VoucherData) => {
+    const success = await saveVoucher(newVoucher);
+    if (success) {
       setEditingVoucher(null);
       setVoucherView("list");
-    } else {
-      setVouchers((prev) => [newVoucher, ...prev]);
     }
   };
 
@@ -152,8 +149,9 @@ export default function Home() {
     setAccounts((prev) => prev.filter((a) => a.id !== id));
   };
 
-  const handleDeleteVoucher = (id: string) => {
+  const handleDeleteVoucher = async (id: string) => {
     setVouchers((prev) => prev.filter((v) => v.id !== id));
+    await deleteVoucher(id);
   };
 
   const isReportMenu = activeSubMenu in REPORT_TITLES;
@@ -396,7 +394,31 @@ export default function Home() {
           ) : activeSubMenu === "reconcile-entries" ? (
             <ReconcileVoucher
               vouchers={vouchers}
-              onUpdateVouchers={(updated) => setVouchers(updated)}
+              onUpdateVouchers={async (updated) => {
+                // Find all vouchers that were actually modified in terms of 'received' status
+                const modified = updated.filter((newV) => {
+                  const oldV = vouchers.find((o) => o.id === newV.id);
+                  return oldV && oldV.received !== newV.received;
+                });
+                
+                // Optimistically update the UI state
+                setVouchers(updated);
+
+                // Persist the changes to the database
+                try {
+                  await Promise.all(
+                    modified.map((v) =>
+                      fetch(`/api/vouchers/${v.id}`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(v),
+                      })
+                    )
+                  );
+                } catch (err) {
+                  console.error("Failed to persist reconciliation state:", err);
+                }
+              }}
               onDeleteVoucher={handleDeleteVoucher}
             />
           ) : activeSubMenu === "chart-of-account" ? (
@@ -469,6 +491,12 @@ export default function Home() {
           ) : (
             <VoucherList
               vouchers={vouchers}
+              loading={vouchersLoading}
+              error={vouchersError}
+              onSearch={(filter, query) => {
+                setVoucherFilterBy(filter);
+                setVoucherSearch(query);
+              }}
               onCreateNew={() => {
                 setVoucherView("create");
                 setEditingVoucher(null);

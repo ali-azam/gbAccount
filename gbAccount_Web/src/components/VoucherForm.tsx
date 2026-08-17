@@ -18,6 +18,8 @@ export interface VoucherData {
   autoVoucher?: string;
   received?: boolean;
   createdAt: string;
+  officeID?: number;
+  zoneCode?: string;
 }
 
 interface VoucherFormProps {
@@ -77,6 +79,13 @@ export default function VoucherForm({ onSaveVoucher, onBackToList, initialData }
 
     if (type === "number") {
       setFormData((prev) => ({ ...prev, [name]: parseFloat(value) || 0 }));
+    } else if (name === "voucherType") {
+      setFormData((prev) => ({
+        ...prev,
+        voucherType: value,
+        debit: value === "Debit" ? prev.debit : 0,
+        credit: value === "Credit" ? prev.credit : 0,
+      }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
@@ -280,6 +289,11 @@ export default function VoucherForm({ onSaveVoucher, onBackToList, initialData }
               value={formData.debit}
               onChange={handleChange}
               className="form-input"
+              disabled={formData.voucherType !== "Debit"}
+              style={{
+                backgroundColor: formData.voucherType !== "Debit" ? "#f1f5f9" : "#ffffff",
+                cursor: formData.voucherType !== "Debit" ? "not-allowed" : "default",
+              }}
             />
           </div>
 
@@ -294,7 +308,11 @@ export default function VoucherForm({ onSaveVoucher, onBackToList, initialData }
               value={formData.credit}
               onChange={handleChange}
               className="form-input"
-              style={{ backgroundColor: "#f9fafb" }}
+              disabled={formData.voucherType !== "Credit"}
+              style={{
+                backgroundColor: formData.voucherType !== "Credit" ? "#f1f5f9" : "#ffffff",
+                cursor: formData.voucherType !== "Credit" ? "not-allowed" : "default",
+              }}
             />
           </div>
         </div>

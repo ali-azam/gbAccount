@@ -53,7 +53,13 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   AccCategory: 'AccCategory',
   AccChart: 'AccChart',
-  Organization: 'Organization'
+  Organization: 'Organization',
+  AccLastVoucher: 'AccLastVoucher',
+  AccTrxDetail: 'AccTrxDetail',
+  AccTrxMaster: 'AccTrxMaster',
+  AccReconcile: 'AccReconcile',
+  GeoLocation: 'GeoLocation',
+  Office: 'Office'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -127,6 +133,128 @@ export const OrganizationScalarFieldEnum = {
 } as const
 
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
+
+
+export const AccLastVoucherScalarFieldEnum = {
+  LastVoucherID: 'LastVoucherID',
+  OfficeID: 'OfficeID',
+  VoucherNo: 'VoucherNo'
+} as const
+
+export type AccLastVoucherScalarFieldEnum = (typeof AccLastVoucherScalarFieldEnum)[keyof typeof AccLastVoucherScalarFieldEnum]
+
+
+export const AccTrxDetailScalarFieldEnum = {
+  TrxDetailsID: 'TrxDetailsID',
+  TrxMasterID: 'TrxMasterID',
+  AccID: 'AccID',
+  Credit: 'Credit',
+  Debit: 'Debit',
+  Narration: 'Narration',
+  IsActive: 'IsActive',
+  InActiveDate: 'InActiveDate',
+  CreateUser: 'CreateUser',
+  CreateDate: 'CreateDate'
+} as const
+
+export type AccTrxDetailScalarFieldEnum = (typeof AccTrxDetailScalarFieldEnum)[keyof typeof AccTrxDetailScalarFieldEnum]
+
+
+export const AccTrxMasterScalarFieldEnum = {
+  TrxMasterID: 'TrxMasterID',
+  OfficeID: 'OfficeID',
+  TrxDate: 'TrxDate',
+  VoucherNo: 'VoucherNo',
+  VoucherDesc: 'VoucherDesc',
+  VoucherType: 'VoucherType',
+  Reference: 'Reference',
+  IsPosted: 'IsPosted',
+  IsYearlyClosing: 'IsYearlyClosing',
+  IsAutoVoucher: 'IsAutoVoucher',
+  IsRectify: 'IsRectify',
+  OrgID: 'OrgID',
+  IsActive: 'IsActive',
+  InActiveDate: 'InActiveDate',
+  CreateUser: 'CreateUser',
+  CreateDate: 'CreateDate',
+  IsReconcileVoucher: 'IsReconcileVoucher'
+} as const
+
+export type AccTrxMasterScalarFieldEnum = (typeof AccTrxMasterScalarFieldEnum)[keyof typeof AccTrxMasterScalarFieldEnum]
+
+
+export const AccReconcileScalarFieldEnum = {
+  AccReconcileID: 'AccReconcileID',
+  TrxMasterID: 'TrxMasterID',
+  TrxDate: 'TrxDate',
+  SenderOfficeId: 'SenderOfficeId',
+  ReceiverOfficeId: 'ReceiverOfficeId',
+  ReffNo: 'ReffNo',
+  Purpose: 'Purpose',
+  Credit: 'Credit',
+  Debit: 'Debit',
+  IsReconcile: 'IsReconcile',
+  OrgID: 'OrgID',
+  IsActive: 'IsActive',
+  InActiveDate: 'InActiveDate',
+  CreateUser: 'CreateUser',
+  CreateDate: 'CreateDate',
+  Receiver_TrxMasterID: 'Receiver_TrxMasterID',
+  HO_TrxMasterID: 'HO_TrxMasterID'
+} as const
+
+export type AccReconcileScalarFieldEnum = (typeof AccReconcileScalarFieldEnum)[keyof typeof AccReconcileScalarFieldEnum]
+
+
+export const GeoLocationScalarFieldEnum = {
+  GeoLocationID: 'GeoLocationID',
+  LocationName: 'LocationName',
+  LocationLevel: 'LocationLevel',
+  FirstLevel: 'FirstLevel',
+  SecondLevel: 'SecondLevel',
+  ThirdLevel: 'ThirdLevel',
+  FourthLevel: 'FourthLevel',
+  FifthLevel: 'FifthLevel',
+  OrgID: 'OrgID',
+  IsActive: 'IsActive',
+  InActiveDate: 'InActiveDate',
+  CreateUser: 'CreateUser',
+  CreateDate: 'CreateDate'
+} as const
+
+export type GeoLocationScalarFieldEnum = (typeof GeoLocationScalarFieldEnum)[keyof typeof GeoLocationScalarFieldEnum]
+
+
+export const OfficeScalarFieldEnum = {
+  OfficeID: 'OfficeID',
+  OfficeCode: 'OfficeCode',
+  OfficeName: 'OfficeName',
+  OfficeLevel: 'OfficeLevel',
+  FirstLevel: 'FirstLevel',
+  SecondLevel: 'SecondLevel',
+  ThirdLevel: 'ThirdLevel',
+  FourthLevel: 'FourthLevel',
+  OperationStartDate: 'OperationStartDate',
+  OfficeAddress: 'OfficeAddress',
+  PostCode: 'PostCode',
+  GeoLocationID: 'GeoLocationID',
+  Email: 'Email',
+  Phone: 'Phone',
+  bankasiaaccno: 'bankasiaaccno',
+  PhonebKash: 'PhonebKash',
+  OrgID: 'OrgID',
+  IsActive: 'IsActive',
+  InActiveDate: 'InActiveDate',
+  CreateUser: 'CreateUser',
+  CreateDate: 'CreateDate',
+  InvestorID: 'InvestorID',
+  UnionID: 'UnionID',
+  IsProjectOffice: 'IsProjectOffice',
+  ProjectOffice: 'ProjectOffice',
+  UnionCode: 'UnionCode'
+} as const
+
+export type OfficeScalarFieldEnum = (typeof OfficeScalarFieldEnum)[keyof typeof OfficeScalarFieldEnum]
 
 
 export const SortOrder = {

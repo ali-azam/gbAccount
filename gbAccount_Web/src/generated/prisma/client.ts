@@ -56,3 +56,33 @@ export type AccChart = Prisma.AccChartModel
  * 
  */
 export type Organization = Prisma.OrganizationModel
+/**
+ * Model AccLastVoucher
+ * 
+ */
+export type AccLastVoucher = Prisma.AccLastVoucherModel
+/**
+ * Model AccTrxDetail
+ * 
+ */
+export type AccTrxDetail = Prisma.AccTrxDetailModel
+/**
+ * Model AccTrxMaster
+ * 
+ */
+export type AccTrxMaster = Prisma.AccTrxMasterModel
+/**
+ * Model AccReconcile
+ * 
+ */
+export type AccReconcile = Prisma.AccReconcileModel
+/**
+ * Model GeoLocation
+ * 
+ */
+export type GeoLocation = Prisma.GeoLocationModel
+/**
+ * Model Office
+ * 
+ */
+export type Office = Prisma.OfficeModel

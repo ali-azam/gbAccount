@@ -29,7 +29,7 @@ type SortField =
   | "module"
   | "note";
 
-const PAGE_SIZES = [25, 50, 100, 250];
+const PAGE_SIZES = [10, 20, 50, 100];
 
 export default function AccountList({ accounts, onCreateNew, onEditAccount, onDeleteAccount, loading, error }: AccountListProps) {
   const [filterBy, setFilterBy] = useState("View All");
@@ -40,7 +40,7 @@ export default function AccountList({ accounts, onCreateNew, onEditAccount, onDe
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(50);
+  const [pageSize, setPageSize] = useState(20);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

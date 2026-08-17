@@ -285,6 +285,8 @@ export type OrganizationWhereInput = {
   LoanAge?: Prisma.IntNullableFilter<"Organization"> | number | null
   GuarantorAge?: Prisma.IntNullableFilter<"Organization"> | number | null
   AccChart?: Prisma.AccChartListRelationFilter
+  GeoLocation?: Prisma.GeoLocationListRelationFilter
+  Office?: Prisma.OfficeListRelationFilter
 }
 
 export type OrganizationOrderByWithRelationInput = {
@@ -301,6 +303,8 @@ export type OrganizationOrderByWithRelationInput = {
   LoanAge?: Prisma.SortOrderInput | Prisma.SortOrder
   GuarantorAge?: Prisma.SortOrderInput | Prisma.SortOrder
   AccChart?: Prisma.AccChartOrderByRelationAggregateInput
+  GeoLocation?: Prisma.GeoLocationOrderByRelationAggregateInput
+  Office?: Prisma.OfficeOrderByRelationAggregateInput
 }
 
 export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
@@ -320,6 +324,8 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   LoanAge?: Prisma.IntNullableFilter<"Organization"> | number | null
   GuarantorAge?: Prisma.IntNullableFilter<"Organization"> | number | null
   AccChart?: Prisma.AccChartListRelationFilter
+  GeoLocation?: Prisma.GeoLocationListRelationFilter
+  Office?: Prisma.OfficeListRelationFilter
 }, "OrgID">
 
 export type OrganizationOrderByWithAggregationInput = {
@@ -374,6 +380,8 @@ export type OrganizationCreateInput = {
   LoanAge?: number | null
   GuarantorAge?: number | null
   AccChart?: Prisma.AccChartCreateNestedManyWithoutOrganizationInput
+  GeoLocation?: Prisma.GeoLocationCreateNestedManyWithoutOrganizationInput
+  Office?: Prisma.OfficeCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateInput = {
@@ -390,6 +398,8 @@ export type OrganizationUncheckedCreateInput = {
   LoanAge?: number | null
   GuarantorAge?: number | null
   AccChart?: Prisma.AccChartUncheckedCreateNestedManyWithoutOrganizationInput
+  GeoLocation?: Prisma.GeoLocationUncheckedCreateNestedManyWithoutOrganizationInput
+  Office?: Prisma.OfficeUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUpdateInput = {
@@ -406,6 +416,8 @@ export type OrganizationUpdateInput = {
   LoanAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   GuarantorAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   AccChart?: Prisma.AccChartUpdateManyWithoutOrganizationNestedInput
+  GeoLocation?: Prisma.GeoLocationUpdateManyWithoutOrganizationNestedInput
+  Office?: Prisma.OfficeUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateInput = {
@@ -422,6 +434,8 @@ export type OrganizationUncheckedUpdateInput = {
   LoanAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   GuarantorAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   AccChart?: Prisma.AccChartUncheckedUpdateManyWithoutOrganizationNestedInput
+  GeoLocation?: Prisma.GeoLocationUncheckedUpdateManyWithoutOrganizationNestedInput
+  Office?: Prisma.OfficeUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateManyInput = {
@@ -533,6 +547,11 @@ export type OrganizationSumOrderByAggregateInput = {
   GuarantorAge?: Prisma.SortOrder
 }
 
+export type OrganizationNullableScalarRelationFilter = {
+  is?: Prisma.OrganizationWhereInput | null
+  isNot?: Prisma.OrganizationWhereInput | null
+}
+
 export type OrganizationCreateNestedOneWithoutAccChartInput = {
   create?: Prisma.XOR<Prisma.OrganizationCreateWithoutAccChartInput, Prisma.OrganizationUncheckedCreateWithoutAccChartInput>
   connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutAccChartInput
@@ -555,6 +574,36 @@ export type NullableBytesFieldUpdateOperationsInput = {
   set?: runtime.Bytes | null
 }
 
+export type OrganizationCreateNestedOneWithoutGeoLocationInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutGeoLocationInput, Prisma.OrganizationUncheckedCreateWithoutGeoLocationInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutGeoLocationInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+}
+
+export type OrganizationUpdateOneWithoutGeoLocationNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutGeoLocationInput, Prisma.OrganizationUncheckedCreateWithoutGeoLocationInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutGeoLocationInput
+  upsert?: Prisma.OrganizationUpsertWithoutGeoLocationInput
+  disconnect?: Prisma.OrganizationWhereInput | boolean
+  delete?: Prisma.OrganizationWhereInput | boolean
+  connect?: Prisma.OrganizationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutGeoLocationInput, Prisma.OrganizationUpdateWithoutGeoLocationInput>, Prisma.OrganizationUncheckedUpdateWithoutGeoLocationInput>
+}
+
+export type OrganizationCreateNestedOneWithoutOfficeInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutOfficeInput, Prisma.OrganizationUncheckedCreateWithoutOfficeInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutOfficeInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+}
+
+export type OrganizationUpdateOneRequiredWithoutOfficeNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutOfficeInput, Prisma.OrganizationUncheckedCreateWithoutOfficeInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutOfficeInput
+  upsert?: Prisma.OrganizationUpsertWithoutOfficeInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutOfficeInput, Prisma.OrganizationUpdateWithoutOfficeInput>, Prisma.OrganizationUncheckedUpdateWithoutOfficeInput>
+}
+
 export type OrganizationCreateWithoutAccChartInput = {
   OrgID: number
   OrganizationCode?: string | null
@@ -568,6 +617,8 @@ export type OrganizationCreateWithoutAccChartInput = {
   MemberAge?: number | null
   LoanAge?: number | null
   GuarantorAge?: number | null
+  GeoLocation?: Prisma.GeoLocationCreateNestedManyWithoutOrganizationInput
+  Office?: Prisma.OfficeCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutAccChartInput = {
@@ -583,6 +634,8 @@ export type OrganizationUncheckedCreateWithoutAccChartInput = {
   MemberAge?: number | null
   LoanAge?: number | null
   GuarantorAge?: number | null
+  GeoLocation?: Prisma.GeoLocationUncheckedCreateNestedManyWithoutOrganizationInput
+  Office?: Prisma.OfficeUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutAccChartInput = {
@@ -614,6 +667,8 @@ export type OrganizationUpdateWithoutAccChartInput = {
   MemberAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   LoanAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   GuarantorAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  GeoLocation?: Prisma.GeoLocationUpdateManyWithoutOrganizationNestedInput
+  Office?: Prisma.OfficeUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutAccChartInput = {
@@ -629,6 +684,176 @@ export type OrganizationUncheckedUpdateWithoutAccChartInput = {
   MemberAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   LoanAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   GuarantorAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  GeoLocation?: Prisma.GeoLocationUncheckedUpdateManyWithoutOrganizationNestedInput
+  Office?: Prisma.OfficeUncheckedUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationCreateWithoutGeoLocationInput = {
+  OrgID: number
+  OrganizationCode?: string | null
+  OrganizationName?: string | null
+  IsActive?: boolean
+  InActiveDate?: Date | string | null
+  CreateUser?: string
+  CreateDate?: Date | string
+  OrgAddress?: string | null
+  OrgLOGO?: runtime.Bytes | null
+  MemberAge?: number | null
+  LoanAge?: number | null
+  GuarantorAge?: number | null
+  AccChart?: Prisma.AccChartCreateNestedManyWithoutOrganizationInput
+  Office?: Prisma.OfficeCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationUncheckedCreateWithoutGeoLocationInput = {
+  OrgID: number
+  OrganizationCode?: string | null
+  OrganizationName?: string | null
+  IsActive?: boolean
+  InActiveDate?: Date | string | null
+  CreateUser?: string
+  CreateDate?: Date | string
+  OrgAddress?: string | null
+  OrgLOGO?: runtime.Bytes | null
+  MemberAge?: number | null
+  LoanAge?: number | null
+  GuarantorAge?: number | null
+  AccChart?: Prisma.AccChartUncheckedCreateNestedManyWithoutOrganizationInput
+  Office?: Prisma.OfficeUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationCreateOrConnectWithoutGeoLocationInput = {
+  where: Prisma.OrganizationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutGeoLocationInput, Prisma.OrganizationUncheckedCreateWithoutGeoLocationInput>
+}
+
+export type OrganizationUpsertWithoutGeoLocationInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutGeoLocationInput, Prisma.OrganizationUncheckedUpdateWithoutGeoLocationInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutGeoLocationInput, Prisma.OrganizationUncheckedCreateWithoutGeoLocationInput>
+  where?: Prisma.OrganizationWhereInput
+}
+
+export type OrganizationUpdateToOneWithWhereWithoutGeoLocationInput = {
+  where?: Prisma.OrganizationWhereInput
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutGeoLocationInput, Prisma.OrganizationUncheckedUpdateWithoutGeoLocationInput>
+}
+
+export type OrganizationUpdateWithoutGeoLocationInput = {
+  OrgID?: Prisma.IntFieldUpdateOperationsInput | number
+  OrganizationCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  OrganizationName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  IsActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  InActiveDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  CreateUser?: Prisma.StringFieldUpdateOperationsInput | string
+  CreateDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  OrgAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  OrgLOGO?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  MemberAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  LoanAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  GuarantorAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  AccChart?: Prisma.AccChartUpdateManyWithoutOrganizationNestedInput
+  Office?: Prisma.OfficeUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationUncheckedUpdateWithoutGeoLocationInput = {
+  OrgID?: Prisma.IntFieldUpdateOperationsInput | number
+  OrganizationCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  OrganizationName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  IsActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  InActiveDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  CreateUser?: Prisma.StringFieldUpdateOperationsInput | string
+  CreateDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  OrgAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  OrgLOGO?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  MemberAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  LoanAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  GuarantorAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  AccChart?: Prisma.AccChartUncheckedUpdateManyWithoutOrganizationNestedInput
+  Office?: Prisma.OfficeUncheckedUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationCreateWithoutOfficeInput = {
+  OrgID: number
+  OrganizationCode?: string | null
+  OrganizationName?: string | null
+  IsActive?: boolean
+  InActiveDate?: Date | string | null
+  CreateUser?: string
+  CreateDate?: Date | string
+  OrgAddress?: string | null
+  OrgLOGO?: runtime.Bytes | null
+  MemberAge?: number | null
+  LoanAge?: number | null
+  GuarantorAge?: number | null
+  AccChart?: Prisma.AccChartCreateNestedManyWithoutOrganizationInput
+  GeoLocation?: Prisma.GeoLocationCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationUncheckedCreateWithoutOfficeInput = {
+  OrgID: number
+  OrganizationCode?: string | null
+  OrganizationName?: string | null
+  IsActive?: boolean
+  InActiveDate?: Date | string | null
+  CreateUser?: string
+  CreateDate?: Date | string
+  OrgAddress?: string | null
+  OrgLOGO?: runtime.Bytes | null
+  MemberAge?: number | null
+  LoanAge?: number | null
+  GuarantorAge?: number | null
+  AccChart?: Prisma.AccChartUncheckedCreateNestedManyWithoutOrganizationInput
+  GeoLocation?: Prisma.GeoLocationUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationCreateOrConnectWithoutOfficeInput = {
+  where: Prisma.OrganizationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutOfficeInput, Prisma.OrganizationUncheckedCreateWithoutOfficeInput>
+}
+
+export type OrganizationUpsertWithoutOfficeInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutOfficeInput, Prisma.OrganizationUncheckedUpdateWithoutOfficeInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutOfficeInput, Prisma.OrganizationUncheckedCreateWithoutOfficeInput>
+  where?: Prisma.OrganizationWhereInput
+}
+
+export type OrganizationUpdateToOneWithWhereWithoutOfficeInput = {
+  where?: Prisma.OrganizationWhereInput
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutOfficeInput, Prisma.OrganizationUncheckedUpdateWithoutOfficeInput>
+}
+
+export type OrganizationUpdateWithoutOfficeInput = {
+  OrgID?: Prisma.IntFieldUpdateOperationsInput | number
+  OrganizationCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  OrganizationName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  IsActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  InActiveDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  CreateUser?: Prisma.StringFieldUpdateOperationsInput | string
+  CreateDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  OrgAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  OrgLOGO?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  MemberAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  LoanAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  GuarantorAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  AccChart?: Prisma.AccChartUpdateManyWithoutOrganizationNestedInput
+  GeoLocation?: Prisma.GeoLocationUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationUncheckedUpdateWithoutOfficeInput = {
+  OrgID?: Prisma.IntFieldUpdateOperationsInput | number
+  OrganizationCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  OrganizationName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  IsActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  InActiveDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  CreateUser?: Prisma.StringFieldUpdateOperationsInput | string
+  CreateDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  OrgAddress?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  OrgLOGO?: Prisma.NullableBytesFieldUpdateOperationsInput | runtime.Bytes | null
+  MemberAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  LoanAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  GuarantorAge?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  AccChart?: Prisma.AccChartUncheckedUpdateManyWithoutOrganizationNestedInput
+  GeoLocation?: Prisma.GeoLocationUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 
@@ -638,10 +863,14 @@ export type OrganizationUncheckedUpdateWithoutAccChartInput = {
 
 export type OrganizationCountOutputType = {
   AccChart: number
+  GeoLocation: number
+  Office: number
 }
 
 export type OrganizationCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   AccChart?: boolean | OrganizationCountOutputTypeCountAccChartArgs
+  GeoLocation?: boolean | OrganizationCountOutputTypeCountGeoLocationArgs
+  Office?: boolean | OrganizationCountOutputTypeCountOfficeArgs
 }
 
 /**
@@ -661,6 +890,20 @@ export type OrganizationCountOutputTypeCountAccChartArgs<ExtArgs extends runtime
   where?: Prisma.AccChartWhereInput
 }
 
+/**
+ * OrganizationCountOutputType without action
+ */
+export type OrganizationCountOutputTypeCountGeoLocationArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.GeoLocationWhereInput
+}
+
+/**
+ * OrganizationCountOutputType without action
+ */
+export type OrganizationCountOutputTypeCountOfficeArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OfficeWhereInput
+}
+
 
 export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   OrgID?: boolean
@@ -676,6 +919,8 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   LoanAge?: boolean
   GuarantorAge?: boolean
   AccChart?: boolean | Prisma.Organization$AccChartArgs<ExtArgs>
+  GeoLocation?: boolean | Prisma.Organization$GeoLocationArgs<ExtArgs>
+  Office?: boolean | Prisma.Organization$OfficeArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["organization"]>
 
@@ -699,6 +944,8 @@ export type OrganizationSelectScalar = {
 export type OrganizationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"OrgID" | "OrganizationCode" | "OrganizationName" | "IsActive" | "InActiveDate" | "CreateUser" | "CreateDate" | "OrgAddress" | "OrgLOGO" | "MemberAge" | "LoanAge" | "GuarantorAge", ExtArgs["result"]["organization"]>
 export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   AccChart?: boolean | Prisma.Organization$AccChartArgs<ExtArgs>
+  GeoLocation?: boolean | Prisma.Organization$GeoLocationArgs<ExtArgs>
+  Office?: boolean | Prisma.Organization$OfficeArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
 }
 
@@ -706,6 +953,8 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
   name: "Organization"
   objects: {
     AccChart: Prisma.$AccChartPayload<ExtArgs>[]
+    GeoLocation: Prisma.$GeoLocationPayload<ExtArgs>[]
+    Office: Prisma.$OfficePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     OrgID: number
@@ -1061,6 +1310,8 @@ readonly fields: OrganizationFieldRefs;
 export interface Prisma__OrganizationClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   AccChart<T extends Prisma.Organization$AccChartArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$AccChartArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AccChartPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  GeoLocation<T extends Prisma.Organization$GeoLocationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$GeoLocationArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GeoLocationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  Office<T extends Prisma.Organization$OfficeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$OfficeArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OfficePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1470,6 +1721,54 @@ export type Organization$AccChartArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.AccChartScalarFieldEnum | Prisma.AccChartScalarFieldEnum[]
+}
+
+/**
+ * Organization.GeoLocation
+ */
+export type Organization$GeoLocationArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the GeoLocation
+   */
+  select?: Prisma.GeoLocationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the GeoLocation
+   */
+  omit?: Prisma.GeoLocationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.GeoLocationInclude<ExtArgs> | null
+  where?: Prisma.GeoLocationWhereInput
+  orderBy?: Prisma.GeoLocationOrderByWithRelationInput | Prisma.GeoLocationOrderByWithRelationInput[]
+  cursor?: Prisma.GeoLocationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.GeoLocationScalarFieldEnum | Prisma.GeoLocationScalarFieldEnum[]
+}
+
+/**
+ * Organization.Office
+ */
+export type Organization$OfficeArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Office
+   */
+  select?: Prisma.OfficeSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Office
+   */
+  omit?: Prisma.OfficeOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OfficeInclude<ExtArgs> | null
+  where?: Prisma.OfficeWhereInput
+  orderBy?: Prisma.OfficeOrderByWithRelationInput | Prisma.OfficeOrderByWithRelationInput[]
+  cursor?: Prisma.OfficeWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OfficeScalarFieldEnum | Prisma.OfficeScalarFieldEnum[]
 }
 
 /**

@@ -37,27 +37,27 @@ const dash = (value: string | null) => (value && value.trim() !== "" ? value : "
  * Code columns are resolved to labels here so the list and the edit modal both
  * see display text rather than raw integers.
  */
-function toAccountData(row: AccChartRow, index: number): AccountData {
+function toAccountData(row: any, index: number): AccountData {
   return {
-    id: String(row.AccID),
+    id: String(row.accID ?? row.AccID),
     sl: index + 1,
-    parentCode: dash(row.FirstLevel),
-    newCode: row.AccCode,
-    accountHead: row.AccName ?? "",
-    level: row.AccLevel ?? 0,
-    first: dash(row.FirstLevel),
-    second: dash(row.SecondLevel),
-    third: dash(row.ThirdLevel),
-    fourth: dash(row.FourthLevel),
-    fifth: dash(row.FifthLevel),
-    isTransaction: row.IsTransaction ?? false,
-    nature: natureLabel(row.Nature),
-    module: moduleLabel(row.ModuleID),
-    officeLevel: officeLevelLabel(row.OfficeLevel),
-    category: row.AccCategory?.CategoryName ?? "-",
-    note: noteLabel(row.NoteID),
-    createdAt: row.CreateDate
-      ? new Date(row.CreateDate).toLocaleDateString()
+    parentCode: dash(row.firstLevel ?? row.FirstLevel),
+    newCode: row.accCode ?? row.AccCode,
+    accountHead: row.accName ?? row.AccName ?? "",
+    level: row.accLevel ?? row.AccLevel ?? 0,
+    first: dash(row.firstLevel ?? row.FirstLevel),
+    second: dash(row.secondLevel ?? row.SecondLevel),
+    third: dash(row.thirdLevel ?? row.ThirdLevel),
+    fourth: dash(row.fourthLevel ?? row.FourthLevel),
+    fifth: dash(row.fifthLevel ?? row.FifthLevel),
+    isTransaction: row.isTransaction ?? row.IsTransaction ?? false,
+    nature: natureLabel(row.nature ?? row.Nature),
+    module: moduleLabel(row.moduleID ?? row.ModuleID),
+    officeLevel: officeLevelLabel(row.officeLevel ?? row.OfficeLevel),
+    category: row.accCategory?.categoryName ?? row.AccCategory?.CategoryName ?? "-",
+    note: noteLabel(row.noteID ?? row.NoteID),
+    createdAt: (row.createDate ?? row.CreateDate)
+      ? new Date(row.createDate ?? row.CreateDate).toLocaleDateString()
       : "-",
   };
 }

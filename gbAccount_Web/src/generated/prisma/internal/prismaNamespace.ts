@@ -399,7 +399,13 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   AccCategory: 'AccCategory',
   AccChart: 'AccChart',
-  Organization: 'Organization'
+  Organization: 'Organization',
+  AccLastVoucher: 'AccLastVoucher',
+  AccTrxDetail: 'AccTrxDetail',
+  AccTrxMaster: 'AccTrxMaster',
+  AccReconcile: 'AccReconcile',
+  GeoLocation: 'GeoLocation',
+  Office: 'Office'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -415,7 +421,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "accCategory" | "accChart" | "organization"
+    modelProps: "accCategory" | "accChart" | "organization" | "accLastVoucher" | "accTrxDetail" | "accTrxMaster" | "accReconcile" | "geoLocation" | "office"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -617,6 +623,402 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    AccLastVoucher: {
+      payload: Prisma.$AccLastVoucherPayload<ExtArgs>
+      fields: Prisma.AccLastVoucherFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AccLastVoucherFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccLastVoucherPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AccLastVoucherFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccLastVoucherPayload>
+        }
+        findFirst: {
+          args: Prisma.AccLastVoucherFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccLastVoucherPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AccLastVoucherFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccLastVoucherPayload>
+        }
+        findMany: {
+          args: Prisma.AccLastVoucherFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccLastVoucherPayload>[]
+        }
+        create: {
+          args: Prisma.AccLastVoucherCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccLastVoucherPayload>
+        }
+        createMany: {
+          args: Prisma.AccLastVoucherCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.AccLastVoucherDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccLastVoucherPayload>
+        }
+        update: {
+          args: Prisma.AccLastVoucherUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccLastVoucherPayload>
+        }
+        deleteMany: {
+          args: Prisma.AccLastVoucherDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AccLastVoucherUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.AccLastVoucherUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccLastVoucherPayload>
+        }
+        aggregate: {
+          args: Prisma.AccLastVoucherAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAccLastVoucher>
+        }
+        groupBy: {
+          args: Prisma.AccLastVoucherGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AccLastVoucherGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AccLastVoucherCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AccLastVoucherCountAggregateOutputType> | number
+        }
+      }
+    }
+    AccTrxDetail: {
+      payload: Prisma.$AccTrxDetailPayload<ExtArgs>
+      fields: Prisma.AccTrxDetailFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AccTrxDetailFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccTrxDetailPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AccTrxDetailFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccTrxDetailPayload>
+        }
+        findFirst: {
+          args: Prisma.AccTrxDetailFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccTrxDetailPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AccTrxDetailFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccTrxDetailPayload>
+        }
+        findMany: {
+          args: Prisma.AccTrxDetailFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccTrxDetailPayload>[]
+        }
+        create: {
+          args: Prisma.AccTrxDetailCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccTrxDetailPayload>
+        }
+        createMany: {
+          args: Prisma.AccTrxDetailCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.AccTrxDetailDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccTrxDetailPayload>
+        }
+        update: {
+          args: Prisma.AccTrxDetailUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccTrxDetailPayload>
+        }
+        deleteMany: {
+          args: Prisma.AccTrxDetailDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AccTrxDetailUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.AccTrxDetailUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccTrxDetailPayload>
+        }
+        aggregate: {
+          args: Prisma.AccTrxDetailAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAccTrxDetail>
+        }
+        groupBy: {
+          args: Prisma.AccTrxDetailGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AccTrxDetailGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AccTrxDetailCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AccTrxDetailCountAggregateOutputType> | number
+        }
+      }
+    }
+    AccTrxMaster: {
+      payload: Prisma.$AccTrxMasterPayload<ExtArgs>
+      fields: Prisma.AccTrxMasterFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AccTrxMasterFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccTrxMasterPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AccTrxMasterFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccTrxMasterPayload>
+        }
+        findFirst: {
+          args: Prisma.AccTrxMasterFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccTrxMasterPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AccTrxMasterFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccTrxMasterPayload>
+        }
+        findMany: {
+          args: Prisma.AccTrxMasterFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccTrxMasterPayload>[]
+        }
+        create: {
+          args: Prisma.AccTrxMasterCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccTrxMasterPayload>
+        }
+        createMany: {
+          args: Prisma.AccTrxMasterCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.AccTrxMasterDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccTrxMasterPayload>
+        }
+        update: {
+          args: Prisma.AccTrxMasterUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccTrxMasterPayload>
+        }
+        deleteMany: {
+          args: Prisma.AccTrxMasterDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AccTrxMasterUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.AccTrxMasterUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccTrxMasterPayload>
+        }
+        aggregate: {
+          args: Prisma.AccTrxMasterAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAccTrxMaster>
+        }
+        groupBy: {
+          args: Prisma.AccTrxMasterGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AccTrxMasterGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AccTrxMasterCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AccTrxMasterCountAggregateOutputType> | number
+        }
+      }
+    }
+    AccReconcile: {
+      payload: Prisma.$AccReconcilePayload<ExtArgs>
+      fields: Prisma.AccReconcileFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AccReconcileFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccReconcilePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AccReconcileFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccReconcilePayload>
+        }
+        findFirst: {
+          args: Prisma.AccReconcileFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccReconcilePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AccReconcileFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccReconcilePayload>
+        }
+        findMany: {
+          args: Prisma.AccReconcileFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccReconcilePayload>[]
+        }
+        create: {
+          args: Prisma.AccReconcileCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccReconcilePayload>
+        }
+        createMany: {
+          args: Prisma.AccReconcileCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.AccReconcileDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccReconcilePayload>
+        }
+        update: {
+          args: Prisma.AccReconcileUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccReconcilePayload>
+        }
+        deleteMany: {
+          args: Prisma.AccReconcileDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AccReconcileUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.AccReconcileUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccReconcilePayload>
+        }
+        aggregate: {
+          args: Prisma.AccReconcileAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAccReconcile>
+        }
+        groupBy: {
+          args: Prisma.AccReconcileGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AccReconcileGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AccReconcileCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AccReconcileCountAggregateOutputType> | number
+        }
+      }
+    }
+    GeoLocation: {
+      payload: Prisma.$GeoLocationPayload<ExtArgs>
+      fields: Prisma.GeoLocationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.GeoLocationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GeoLocationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.GeoLocationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GeoLocationPayload>
+        }
+        findFirst: {
+          args: Prisma.GeoLocationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GeoLocationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.GeoLocationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GeoLocationPayload>
+        }
+        findMany: {
+          args: Prisma.GeoLocationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GeoLocationPayload>[]
+        }
+        create: {
+          args: Prisma.GeoLocationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GeoLocationPayload>
+        }
+        createMany: {
+          args: Prisma.GeoLocationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.GeoLocationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GeoLocationPayload>
+        }
+        update: {
+          args: Prisma.GeoLocationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GeoLocationPayload>
+        }
+        deleteMany: {
+          args: Prisma.GeoLocationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.GeoLocationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.GeoLocationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GeoLocationPayload>
+        }
+        aggregate: {
+          args: Prisma.GeoLocationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateGeoLocation>
+        }
+        groupBy: {
+          args: Prisma.GeoLocationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GeoLocationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.GeoLocationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GeoLocationCountAggregateOutputType> | number
+        }
+      }
+    }
+    Office: {
+      payload: Prisma.$OfficePayload<ExtArgs>
+      fields: Prisma.OfficeFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.OfficeFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OfficePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.OfficeFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OfficePayload>
+        }
+        findFirst: {
+          args: Prisma.OfficeFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OfficePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.OfficeFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OfficePayload>
+        }
+        findMany: {
+          args: Prisma.OfficeFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OfficePayload>[]
+        }
+        create: {
+          args: Prisma.OfficeCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OfficePayload>
+        }
+        createMany: {
+          args: Prisma.OfficeCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        delete: {
+          args: Prisma.OfficeDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OfficePayload>
+        }
+        update: {
+          args: Prisma.OfficeUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OfficePayload>
+        }
+        deleteMany: {
+          args: Prisma.OfficeDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.OfficeUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        upsert: {
+          args: Prisma.OfficeUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OfficePayload>
+        }
+        aggregate: {
+          args: Prisma.OfficeAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateOffice>
+        }
+        groupBy: {
+          args: Prisma.OfficeGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OfficeGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.OfficeCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OfficeCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -713,6 +1115,128 @@ export const OrganizationScalarFieldEnum = {
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
 
 
+export const AccLastVoucherScalarFieldEnum = {
+  LastVoucherID: 'LastVoucherID',
+  OfficeID: 'OfficeID',
+  VoucherNo: 'VoucherNo'
+} as const
+
+export type AccLastVoucherScalarFieldEnum = (typeof AccLastVoucherScalarFieldEnum)[keyof typeof AccLastVoucherScalarFieldEnum]
+
+
+export const AccTrxDetailScalarFieldEnum = {
+  TrxDetailsID: 'TrxDetailsID',
+  TrxMasterID: 'TrxMasterID',
+  AccID: 'AccID',
+  Credit: 'Credit',
+  Debit: 'Debit',
+  Narration: 'Narration',
+  IsActive: 'IsActive',
+  InActiveDate: 'InActiveDate',
+  CreateUser: 'CreateUser',
+  CreateDate: 'CreateDate'
+} as const
+
+export type AccTrxDetailScalarFieldEnum = (typeof AccTrxDetailScalarFieldEnum)[keyof typeof AccTrxDetailScalarFieldEnum]
+
+
+export const AccTrxMasterScalarFieldEnum = {
+  TrxMasterID: 'TrxMasterID',
+  OfficeID: 'OfficeID',
+  TrxDate: 'TrxDate',
+  VoucherNo: 'VoucherNo',
+  VoucherDesc: 'VoucherDesc',
+  VoucherType: 'VoucherType',
+  Reference: 'Reference',
+  IsPosted: 'IsPosted',
+  IsYearlyClosing: 'IsYearlyClosing',
+  IsAutoVoucher: 'IsAutoVoucher',
+  IsRectify: 'IsRectify',
+  OrgID: 'OrgID',
+  IsActive: 'IsActive',
+  InActiveDate: 'InActiveDate',
+  CreateUser: 'CreateUser',
+  CreateDate: 'CreateDate',
+  IsReconcileVoucher: 'IsReconcileVoucher'
+} as const
+
+export type AccTrxMasterScalarFieldEnum = (typeof AccTrxMasterScalarFieldEnum)[keyof typeof AccTrxMasterScalarFieldEnum]
+
+
+export const AccReconcileScalarFieldEnum = {
+  AccReconcileID: 'AccReconcileID',
+  TrxMasterID: 'TrxMasterID',
+  TrxDate: 'TrxDate',
+  SenderOfficeId: 'SenderOfficeId',
+  ReceiverOfficeId: 'ReceiverOfficeId',
+  ReffNo: 'ReffNo',
+  Purpose: 'Purpose',
+  Credit: 'Credit',
+  Debit: 'Debit',
+  IsReconcile: 'IsReconcile',
+  OrgID: 'OrgID',
+  IsActive: 'IsActive',
+  InActiveDate: 'InActiveDate',
+  CreateUser: 'CreateUser',
+  CreateDate: 'CreateDate',
+  Receiver_TrxMasterID: 'Receiver_TrxMasterID',
+  HO_TrxMasterID: 'HO_TrxMasterID'
+} as const
+
+export type AccReconcileScalarFieldEnum = (typeof AccReconcileScalarFieldEnum)[keyof typeof AccReconcileScalarFieldEnum]
+
+
+export const GeoLocationScalarFieldEnum = {
+  GeoLocationID: 'GeoLocationID',
+  LocationName: 'LocationName',
+  LocationLevel: 'LocationLevel',
+  FirstLevel: 'FirstLevel',
+  SecondLevel: 'SecondLevel',
+  ThirdLevel: 'ThirdLevel',
+  FourthLevel: 'FourthLevel',
+  FifthLevel: 'FifthLevel',
+  OrgID: 'OrgID',
+  IsActive: 'IsActive',
+  InActiveDate: 'InActiveDate',
+  CreateUser: 'CreateUser',
+  CreateDate: 'CreateDate'
+} as const
+
+export type GeoLocationScalarFieldEnum = (typeof GeoLocationScalarFieldEnum)[keyof typeof GeoLocationScalarFieldEnum]
+
+
+export const OfficeScalarFieldEnum = {
+  OfficeID: 'OfficeID',
+  OfficeCode: 'OfficeCode',
+  OfficeName: 'OfficeName',
+  OfficeLevel: 'OfficeLevel',
+  FirstLevel: 'FirstLevel',
+  SecondLevel: 'SecondLevel',
+  ThirdLevel: 'ThirdLevel',
+  FourthLevel: 'FourthLevel',
+  OperationStartDate: 'OperationStartDate',
+  OfficeAddress: 'OfficeAddress',
+  PostCode: 'PostCode',
+  GeoLocationID: 'GeoLocationID',
+  Email: 'Email',
+  Phone: 'Phone',
+  bankasiaaccno: 'bankasiaaccno',
+  PhonebKash: 'PhonebKash',
+  OrgID: 'OrgID',
+  IsActive: 'IsActive',
+  InActiveDate: 'InActiveDate',
+  CreateUser: 'CreateUser',
+  CreateDate: 'CreateDate',
+  InvestorID: 'InvestorID',
+  UnionID: 'UnionID',
+  IsProjectOffice: 'IsProjectOffice',
+  ProjectOffice: 'ProjectOffice',
+  UnionCode: 'UnionCode'
+} as const
+
+export type OfficeScalarFieldEnum = (typeof OfficeScalarFieldEnum)[keyof typeof OfficeScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -767,6 +1291,20 @@ export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
  * Reference to a field of type 'Bytes'
  */
 export type BytesFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Bytes'>
+    
+
+
+/**
+ * Reference to a field of type 'BigInt'
+ */
+export type BigIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BigInt'>
+    
+
+
+/**
+ * Reference to a field of type 'Decimal'
+ */
+export type DecimalFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Decimal'>
     
 
 
@@ -930,6 +1468,12 @@ export type GlobalOmitConfig = {
   accCategory?: Prisma.AccCategoryOmit
   accChart?: Prisma.AccChartOmit
   organization?: Prisma.OrganizationOmit
+  accLastVoucher?: Prisma.AccLastVoucherOmit
+  accTrxDetail?: Prisma.AccTrxDetailOmit
+  accTrxMaster?: Prisma.AccTrxMasterOmit
+  accReconcile?: Prisma.AccReconcileOmit
+  geoLocation?: Prisma.GeoLocationOmit
+  office?: Prisma.OfficeOmit
 }
 
 /* Types for Logging */

@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using GBWeb.Implementation.Application.Common.Interfaces;
 using GBWeb.Implementation.Domain.Common.Entities;
 using GBWeb.Implementation.Domain.Common.Interfaces;
@@ -22,6 +22,8 @@ public sealed class ApplicationDbContext(
     public DbSet<AccChart> AccCharts => Set<AccChart>();
     public DbSet<Organization> Organizations => Set<Organization>();
     public DbSet<GbAccount> GbAccounts => Set<GbAccount>();
+    public DbSet<AccTrxMaster> AccTrxMasters => Set<AccTrxMaster>();
+    public DbSet<AccTrxDetail> AccTrxDetails => Set<AccTrxDetail>();
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -101,3 +103,4 @@ public sealed class ApplicationDbContext(
         builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
     }
 }
+
