@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using QuestPDF.Infrastructure;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,13 +28,40 @@ builder.Services.AddControllers(options =>
     var policy = new AuthorizationPolicyBuilder()
         .RequireAuthenticatedUser()
         .Build();
+
     options.Filters.Add(new AuthorizeFilter(policy));
 });
 
+
+// ============================================================
+// CORS
+// Allow the Next.js frontend running on localhost:3000
+// to call this ASP.NET Core API.
+// ============================================================
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Frontend", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
+
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new() { Title = "GBWeb Implementation API", Version = "v1" });
+    options.SwaggerDoc(
+        "v1",
+        new()
+        {
+            Title = "GBWeb Implementation API",
+            Version = "v1"
+        });
+
     options.AddSecurityDefinition("EntraId", new OpenApiSecurityScheme
     {
         Type = SecuritySchemeType.OAuth2,
@@ -41,63 +70,109 @@ builder.Services.AddSwaggerGen(options =>
         {
             AuthorizationCode = new OpenApiOAuthFlow
             {
-                AuthorizationUrl = new Uri($"https://login.microsoftonline.com/{builder.Configuration["EntraId:TenantId"]}/oauth2/v2.0/authorize"),
-                TokenUrl = new Uri($"https://login.microsoftonline.com/{builder.Configuration["EntraId:TenantId"]}/oauth2/v2.0/token"),
+                AuthorizationUrl = new Uri(
+                    $"https://login.microsoftonline.com/{builder.Configuration["EntraId:TenantId"]}/oauth2/v2.0/authorize"),
+
+                TokenUrl = new Uri(
+                    $"https://login.microsoftonline.com/{builder.Configuration["EntraId:TenantId"]}/oauth2/v2.0/token"),
+
                 Scopes = new Dictionary<string, string>
                 {
-                    [$"api://{builder.Configuration["EntraId:ClientId"]}/access_as_user"] = "Access GBWeb API"
+                    [$"api://{builder.Configuration["EntraId:ClientId"]}/access_as_user"]
+                        = "Access GBWeb API"
                 }
             }
         }
     });
+
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
-        [new OpenApiSecurityScheme { Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "EntraId" } }] = []
+        [new OpenApiSecurityScheme
+        {
+            Reference = new OpenApiReference
+            {
+                Type = ReferenceType.SecurityScheme,
+                Id = "EntraId"
+            }
+        }] = []
     });
 });
+
 
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            context.User.FindFirst("oid")?.Value ?? context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
-            _ => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = 120,
-                Window = TimeSpan.FromMinutes(1),
-                QueueLimit = 0,
-                AutoReplenishment = true
-            }));
+
+    options.GlobalLimiter =
+        PartitionedRateLimiter.Create<HttpContext, string>(context =>
+            RateLimitPartition.GetFixedWindowLimiter(
+                context.User.FindFirst("oid")?.Value
+                    ?? context.Connection.RemoteIpAddress?.ToString()
+                    ?? "anonymous",
+
+                _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 120,
+                    Window = TimeSpan.FromMinutes(1),
+                    QueueLimit = 0,
+                    AutoReplenishment = true
+                }));
 });
+
+
 builder.Services.AddHealthChecks();
 
+QuestPDF.Settings.License = LicenseType.Community;
 var app = builder.Build();
+
 
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
+
     app.UseSwaggerUI(options =>
     {
-        options.OAuthClientId(builder.Configuration["EntraId:SwaggerClientId"] ?? builder.Configuration["EntraId:ClientId"]);
+        options.OAuthClientId(
+            builder.Configuration["EntraId:SwaggerClientId"]
+                ?? builder.Configuration["EntraId:ClientId"]);
+
         options.OAuthUsePkce();
         options.OAuthScopeSeparator(" ");
     });
 }
 
+
+// ============================================================
+// CORS
+// This must be BEFORE the request reaches the controllers.
+// ============================================================
+app.UseCors("Frontend");
+
+
 app.UseExceptionHandler();
+
 app.UseSerilogRequestLogging(options =>
 {
     options.EnrichDiagnosticContext = (diagnostic, context) =>
     {
         diagnostic.Set("TraceId", context.TraceIdentifier);
-        diagnostic.Set("UserId", context.User.FindFirst("oid")?.Value ?? "anonymous");
+
+        diagnostic.Set(
+            "UserId",
+            context.User.FindFirst("oid")?.Value ?? "anonymous");
     };
 });
+
 app.UseHttpsRedirection();
+
 app.UseAuthentication();
+
 app.UseAuthorization();
+
 app.UseRateLimiter();
+
 app.MapControllers();
+
 app.MapHealthChecks("/health").AllowAnonymous();
+
 app.Run();

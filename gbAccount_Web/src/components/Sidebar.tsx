@@ -204,42 +204,123 @@ export default function Sidebar({ activeSubMenu, onSelectMenu }: SidebarProps) {
                   <span>Account Reports</span>
                 </button>
 
-                {reportsOpen && (
-                  <div style={{ paddingLeft: "26px", display: "flex", flexDirection: "column", gap: "4px" }}>
-                    {/* Vouchers */}
-                    <button
-                      onClick={() => {
-                        onSelectMenu("report-vouchers");
-                        setMobileOpen(false);
-                      }}
-                      className={`sidebar-sub-btn ${activeSubMenu === "report-vouchers" ? "active" : ""}`}
-                    >
-                      <span>Vouchers</span>
-                    </button>
+              {reportsOpen && (
+                <div style={{ paddingLeft: "26px", display: "flex", flexDirection: "column", gap: "4px" }}>
+                  {/* Vouchers */}
+                  <button
+                    onClick={() => {
+                      onSelectMenu("report-vouchers");
+                      setMobileOpen(false);
+                    }}
+                    className={`sidebar-sub-btn ${activeSubMenu === "report-vouchers" ? "active" : ""}`}
+                  >
+                    <span>Vouchers</span>
+                  </button>
 
-                    {/* General Ledger */}
-                    <button
-                      onClick={() => {
-                        onSelectMenu("report-general-ledger");
-                        setMobileOpen(false);
-                      }}
-                      className={`sidebar-sub-btn ${activeSubMenu === "report-general-ledger" ? "active" : ""}`}
-                    >
-                      <span>General Ledger</span>
-                    </button>
+                  {/*AccCodewise Trial Balance */}
+                  <button
+                    onClick={() => {
+                      onSelectMenu("report-Acccodewise-trial-balance");
+                      setMobileOpen(false);
+                    }}
+                    className={`sidebar-sub-btn ${activeSubMenu === "report-Acccodewise-trial-balance" ? "active" : ""}`}
+                  >
+                    <span>Trial Balance(AccountCode Wise)</span>
+                  </button>
 
-                    {/* Cash Book */}
-                    <button
-                      onClick={() => {
-                        onSelectMenu("report-cash-book");
-                        setMobileOpen(false);
-                      }}
-                      className={`sidebar-sub-btn ${activeSubMenu === "report-cash-book" ? "active" : ""}`}
-                    >
-                      <span>Cash Book</span>
+                  {/* General Ledger */}
+                  <button
+                    onClick={() => {
+                      onSelectMenu("report-general-ledger");
+                      setMobileOpen(false);
+                    }}
+                    className={`sidebar-sub-btn ${activeSubMenu === "report-general-ledger" ? "active" : ""}`}
+                  >
+                    <span>General Ledger</span>
+                  </button>
+
+                  {/* Cash Book */}
+                  <button
+                    onClick={() => {
+                      onSelectMenu("report-cash-book");
+                      setMobileOpen(false);
+                    }}
+                    className={`sidebar-sub-btn ${activeSubMenu === "report-cash-book" ? "active" : ""}`}
+                  >
+                    <span>Cash Book</span>
+                  </button>
+                   {/*Trial Balance */}
+                  <button
+                    onClick={() => {
+                      onSelectMenu("report-trial-balance");
+                      setMobileOpen(false);
+                    }}
+                    className={`sidebar-sub-btn ${activeSubMenu === "report-trial-balance" ? "active" : ""}`}
+                  >
+                    <span>Trial Balance</span>
+                  </button>
+                   {/*Trial Balance Office*/}
+                  <button
+                    onClick={() => {
+                      onSelectMenu("report-office-trial-balance");
+                      setMobileOpen(false);
+                    }}
+                    className={`sidebar-sub-btn ${activeSubMenu === "report-office-trial-balance" ? "active" : ""}`}
+                  >
+                    <span>Trial Balance(Office)</span>
                     </button>
-                  </div>
-                )}
+                    {/*Target Achievement Report*/}
+                   <button
+                    onClick={() => {
+                      onSelectMenu("report-target-achievement");
+                      setMobileOpen(false);
+                    }}
+                    className={`sidebar-sub-btn ${activeSubMenu === "report-target-achievement" ? "active" : ""}`}
+                  >
+                    <span>Target Achievement</span>
+                    </button>
+                    {/*Receive Payment Report*/}
+                    <button
+                    onClick={() => {
+                      onSelectMenu("report-receive-payment");
+                      setMobileOpen(false);
+                    }}
+                    className={`sidebar-sub-btn ${activeSubMenu === "report-receive-payment" ? "active" : ""}`}
+                  >
+                    <span>Receive Payment</span>
+                    </button>
+                    {/*Receive Payment Report office*/}
+                    <button
+                    onClick={() => {
+                      onSelectMenu("report-receive-payment-office");
+                      setMobileOpen(false);
+                    }}
+                    className={`sidebar-sub-btn ${activeSubMenu === "report-receive-payment-office" ? "active" : ""}`}
+                  >
+                    <span>Receive Payment(Office)</span>
+                    </button>
+                    {/*Income Expenditure Report*/}
+                      <button
+                    onClick={() => {
+                      onSelectMenu("report-income-expenditure");
+                      setMobileOpen(false);
+                    }}
+                    className={`sidebar-sub-btn ${activeSubMenu === "report-income-expenditure" ? "active" : ""}`}
+                  >
+                    <span>Income Expenditure</span>
+                    </button>
+                    {/*Income Expenditure Report*/}
+                    <button
+                    onClick={() => {
+                      onSelectMenu("report-income-expenditure-office");
+                      setMobileOpen(false);
+                    }}
+                    className={`sidebar-sub-btn ${activeSubMenu === "report-income-expenditure-office" ? "active" : ""}`}
+                  >
+                    <span>Income Expenditure(Office)</span>
+                    </button>
+                </div>
+              )}
               </div>
             )}
           </div>

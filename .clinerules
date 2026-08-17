@@ -1,0 +1,48 @@
+# Repository reading rules
+
+Do NOT read, inspect, search, summarize, or include the contents of these directories
+unless the user explicitly asks for them:
+
+- .git/
+- node_modules/
+- bin/
+- obj/
+- .next/
+- dist/
+- out/
+- coverage/
+- logs/
+- tmp/
+- temp/
+- .vscode/
+- .idea/
+
+Do NOT read or include these files unless the user explicitly asks:
+
+- .env
+- .env.*
+- appsettings.Development.json
+- appsettings.Local.json
+- *.log
+
+Never expose API keys, passwords, connection strings, access tokens,
+JWT secrets, database credentials, or other secrets in responses.
+
+When working on the ASP.NET Core API, prefer reading only:
+
+- GbAccount.Api/Controllers/
+- GbAccount.Api/DTOs/
+- GbAccount.Api/Data/
+- GbAccount.Api/Interfaces/
+- GbAccount.Api/Services/
+- GbAccount.Api/Mapping/
+- GbAccount.Api/Models/
+- GbAccount.Api/Program.cs
+
+When working on the Next.js frontend, prefer reading only:
+
+- src/
+- public/
+
+Only inspect additional files when they are directly required for the
+current task or the user explicitly requests them.

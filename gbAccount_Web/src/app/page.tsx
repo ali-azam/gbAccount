@@ -18,14 +18,31 @@ import TargetAchievement, { TargetAchievementData } from "@/components/TargetAch
 import VoucherReport from "@/components/VoucherReport";
 import GeneralLedgerReport from "@/components/GeneralLedgerReport";
 import CashBookReport from "@/components/CashBookReport";
+import TrialBalanceReportWithAccCode from "@/components/TrialBalanceReportAccCode";
+import TrialBalanceReport from "@/components/TrialBalanceReport";
+import TrialBalanceReportOffice from "@/components/TrialBalanceReportOffice";
+import TargetAndAchievementReport from "@/components/TargetAndAchievementReport";
+import ReceivePaymentReport from "@/components/ReceivePaymentReport";
+import ReceivePaymentReportByOffice from "@/components/ReceivePaymentReportOffice";
+import IncomeExpenditureReport from "@/components/IncomeExpReport";
+import IncomeExpenditureReportByOffice from "@/components/IncomeExpReportOffice";
 import { useAccounts } from "@/lib/useAccounts";
 import FundTransfer from "@/components/FundTransfer";
+
 
 // Account Reports sub-menu keys mapped to their display titles
 const REPORT_TITLES: Record<string, string> = {
   "report-vouchers": "Vouchers",
   "report-general-ledger": "General Ledger",
   "report-cash-book": "Cash Book",
+  "report-Acccodewise-trial-balance": "AccountCode wise Trial Balance",
+  "report-trial-balance": "Trial Balance",
+  "report-office-trial-balance": "Office Trial Balance",
+   "report-target-achievement": "Target And Achievement Report",
+   "report-receive-payment": "Receive Payment Report",
+   "report-receive-payment-office": "Receive Payment Report office",
+   "report-income-expenditure": "Income Expenditure Report",
+   "report-income-expenditure-office": "Income Expenditure Report office",
 };
 
 // Breadcrumb middle segment per report page
@@ -33,6 +50,14 @@ const REPORT_CRUMBS: Record<string, string> = {
   "report-vouchers": "AccVoucherReport",
   "report-general-ledger": "AccGeneralLedger",
   "report-cash-book": "AccCashBook",
+  "report-Acccodewise-trial-balance": "AccCodeTrialBalance",
+  "report-trial-balance": "AccTrialBalance",
+  "report-office-trial-balance": "AccOfficeTrialBalance",
+  "report-target-achievement": "TargetAndAchievementReport",
+  "report-receive-payment": "AccRcvPayReport",
+  "report-receive-payment-office": "AccRcvPayReportoffice",
+  "report-income-expenditure": "AccIncExpReport",
+  "report-income-expenditure-office": "AccIncExpReportoffice",
 };
 
 export default function Home() {
@@ -300,9 +325,25 @@ export default function Home() {
                 <h1 className="page-title">{REPORT_TITLES[activeSubMenu]}</h1>
               </div>
               {activeSubMenu === "report-vouchers" ? (
-                <VoucherReport vouchers={vouchers} />
+                <VoucherReport/>
               ) : activeSubMenu === "report-general-ledger" ? (
                 <GeneralLedgerReport />
+              ) : activeSubMenu === "report-Acccodewise-trial-balance" ? (
+                <TrialBalanceReportWithAccCode />
+              ) : activeSubMenu === "report-trial-balance" ? (
+                <TrialBalanceReport /> 
+              ) : activeSubMenu === "report-office-trial-balance" ? (
+                <TrialBalanceReportOffice /> 
+              ) : activeSubMenu === "report-target-achievement" ? (
+                <TargetAndAchievementReport />
+              ) : activeSubMenu === "report-receive-payment" ? (
+                <ReceivePaymentReport />
+              ) : activeSubMenu === "report-receive-payment-office" ? (
+                <ReceivePaymentReportByOffice />
+              ) : activeSubMenu === "report-income-expenditure" ? (
+                <IncomeExpenditureReport />
+              ) : activeSubMenu === "report-income-expenditure-office" ? (
+                <IncomeExpenditureReportByOffice />
               ) : (
                 <CashBookReport />
               )}

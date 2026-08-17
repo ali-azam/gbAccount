@@ -16,6 +16,9 @@ public static class DependencyInjection
     {
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddScoped<
+    IVoucherReportPdfService,
+    VoucherReportPdfService>();
 
         var databaseOptions = configuration.GetSection(DatabaseOptions.SectionName).Get<DatabaseOptions>() ?? new();
         var connectionString = configuration.GetConnectionString("DefaultConnection")
