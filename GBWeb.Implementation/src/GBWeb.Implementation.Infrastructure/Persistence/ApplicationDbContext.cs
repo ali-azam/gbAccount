@@ -1,3 +1,4 @@
+using System.Text.Json;
 using GBWeb.Implementation.Application.Common.Interfaces;
 using GBWeb.Implementation.Domain.Common.Entities;
 using GBWeb.Implementation.Domain.Common.Interfaces;
@@ -5,7 +6,6 @@ using GBWeb.Implementation.Domain.Modules.Account.Entities;
 using GBWeb.Implementation.Domain.Modules.Organization.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
 
 namespace GBWeb.Implementation.Infrastructure.Persistence;
 
@@ -18,30 +18,18 @@ public sealed class ApplicationDbContext(
 
     public DbSet<Office> Offices => Set<Office>();
 
+    public DbSet<AccCategory> AccCategories => Set<AccCategory>();
+    public DbSet<AccChart> AccCharts => Set<AccChart>();
+    public DbSet<Organization> Organizations => Set<Organization>();
+    public DbSet<GbAccount> GbAccounts => Set<GbAccount>();
+    public DbSet<AccTrxMaster> AccTrxMasters => Set<AccTrxMaster>();
+    public DbSet<AccTrxDetail> AccTrxDetails => Set<AccTrxDetail>();
+
     public DbSet<ApprovalRequest> ApprovalRequests =>
         Set<ApprovalRequest>();
 
     public DbSet<AuditLog> AuditLogs =>
         Set<AuditLog>();
-
-    public DbSet<AccCategory> AccCategories =>
-        Set<AccCategory>();
-
-    public DbSet<AccChart> AccCharts =>
-        Set<AccChart>();
-
-    public DbSet<Organization> Organizations =>
-        Set<Organization>();
-
-    public DbSet<AccTrxMaster> AccTrxMasters =>
-        Set<AccTrxMaster>();
-
-    public DbSet<AccTrxDetail> AccTrxDetails =>
-        Set<AccTrxDetail>();
-
-    public DbSet<GbAccount> GbAccounts =>
-        Set<GbAccount>();
-
 
     public override Task<int> SaveChangesAsync(
         CancellationToken cancellationToken = default)
@@ -59,7 +47,6 @@ public sealed class ApplicationDbContext(
 
         return base.SaveChangesAsync(cancellationToken);
     }
-
 
     private void ApplyAuditFields()
     {
@@ -87,7 +74,6 @@ public sealed class ApplicationDbContext(
             }
         }
     }
-
 
     private void AppendAuditLogs()
     {
@@ -144,7 +130,6 @@ public sealed class ApplicationDbContext(
         }
     }
 
-
     private static string SerializeValues(
         Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry entry,
         bool original)
@@ -159,7 +144,6 @@ public sealed class ApplicationDbContext(
 
         return JsonSerializer.Serialize(values);
     }
-
 
     private string GetUserId()
     {
@@ -179,14 +163,12 @@ public sealed class ApplicationDbContext(
             "system";
     }
 
-
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
 
         builder.ApplyConfigurationsFromAssembly(
             typeof(ApplicationDbContext).Assembly);
-
 
         // ============================================================
         // OFFICE
@@ -199,126 +181,99 @@ public sealed class ApplicationDbContext(
 
             entity.HasKey(x => x.OfficeID);
 
-
             entity.Property(x => x.OfficeID)
                 .ValueGeneratedOnAdd();
-
 
             entity.Property(x => x.OfficeCode)
                 .HasMaxLength(10)
                 .IsUnicode(false)
                 .IsRequired();
 
-
             entity.Property(x => x.OfficeName)
                 .HasMaxLength(40)
                 .IsRequired();
 
-
             entity.Property(x => x.OfficeLevel)
                 .IsRequired();
-
 
             entity.Property(x => x.FirstLevel)
                 .HasMaxLength(10)
                 .IsUnicode(false)
                 .IsRequired();
 
-
             entity.Property(x => x.SecondLevel)
                 .HasMaxLength(10)
                 .IsUnicode(false);
-
 
             entity.Property(x => x.ThirdLevel)
                 .HasMaxLength(10)
                 .IsUnicode(false);
 
-
             entity.Property(x => x.FourthLevel)
                 .HasMaxLength(10)
                 .IsUnicode(false);
-
 
             entity.Property(x => x.OperationStartDate)
                 .HasColumnType("date")
                 .IsRequired();
 
-
             entity.Property(x => x.OfficeAddress)
                 .HasMaxLength(155)
                 .IsUnicode(false);
-
 
             entity.Property(x => x.PostCode)
                 .HasMaxLength(10)
                 .IsUnicode(false);
 
-
             entity.Property(x => x.GeoLocationID);
-
 
             entity.Property(x => x.Email)
                 .HasMaxLength(45)
                 .IsUnicode(false);
 
-
             entity.Property(x => x.Phone)
                 .HasMaxLength(35)
                 .IsUnicode(false);
-
 
             entity.Property(x => x.BankAsiaAccNo)
                 .HasColumnName("bankasiaaccno")
                 .HasMaxLength(35)
                 .IsUnicode(false);
 
-
             entity.Property(x => x.PhonebKash)
                 .HasMaxLength(30)
                 .IsUnicode(false);
 
-
             entity.Property(x => x.OrgID)
                 .IsRequired();
-
 
             entity.Property(x => x.IsActive)
                 .IsRequired();
 
-
             entity.Property(x => x.InActiveDate)
                 .HasColumnType("smalldatetime");
-
 
             entity.Property(x => x.CreateUser)
                 .HasMaxLength(35)
                 .IsUnicode(false)
                 .IsRequired();
 
-
             entity.Property(x => x.CreateDate)
                 .HasColumnType("smalldatetime")
                 .IsRequired();
 
-
             entity.Property(x => x.InvestorID);
-
 
             entity.Property(x => x.UnionID);
 
-
             entity.Property(x => x.IsProjectOffice);
-
 
             entity.Property(x => x.ProjectOffice)
                 .HasMaxLength(10)
                 .IsUnicode(false);
 
-
             entity.Property(x => x.UnionCode)
                 .HasMaxLength(50);
-
 
             // Office -> Organization
             entity.HasOne<Organization>()
@@ -328,3 +283,4 @@ public sealed class ApplicationDbContext(
         });
     }
 }
+

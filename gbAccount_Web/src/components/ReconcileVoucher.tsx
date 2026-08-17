@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import { VoucherData } from "./VoucherForm";
 import { ChevronsUpDown, ChevronUp, ChevronDown, Trash2, Calendar } from "lucide-react";
 
@@ -35,16 +35,18 @@ export default function ReconcileVoucher({
   const [typePurpose, setTypePurpose] = useState("");
   const [typeVoucherType, setTypeVoucherType] = useState("");
 
-  // Active filters applied on clicking "Search"
-  const [searchParams, setSearchParams] = useState({
-    dateFrom: "",
-    dateTo: "",
-    filterBy: "View All",
-    filterText: "",
-    selectedZone: "01 - Magura Zone",
-    typePurpose: "",
-    typeVoucherType: "",
-  });
+  // Initialize Date From / To automatically based on the range of loaded vouchers
+  useEffect(() => {
+    if (vouchers.length > 0 && !dateFrom && !dateTo) {
+      const dates = vouchers.map((v) => v.trxDate).filter(Boolean);
+      if (dates.length > 0) {
+        const minDate = dates.reduce((a, b) => (a < b ? a : b));
+        const maxDate = dates.reduce((a, b) => (a > b ? a : b));
+        setDateFrom(minDate);
+        setDateTo(maxDate);
+      }
+    }
+  }, [vouchers, dateFrom, dateTo]);
 
   // Table sorting & pagination
   const [sortField, setSortField] = useState<SortField>("voucherNo");
@@ -55,20 +57,19 @@ export default function ReconcileVoucher({
   // Temporary local state for checkboxes before clicking "Send"
   const [pendingReceived, setPendingReceived] = useState<Record<string, boolean>>({});
 
+  // Custom modal notification state
+  const [showModal, setShowModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+
+  // Custom delete confirmation modal state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [voucherToDelete, setVoucherToDelete] = useState<string | null>(null);
+
   const dateFromRef = useRef<HTMLInputElement>(null);
   const dateToRef = useRef<HTMLInputElement>(null);
 
   // Trigger search filters
   const handleSearch = () => {
-    setSearchParams({
-      dateFrom,
-      dateTo,
-      filterBy,
-      filterText,
-      selectedZone,
-      typePurpose,
-      typeVoucherType,
-    });
     setPage(1);
   };
 
@@ -81,7 +82,8 @@ export default function ReconcileVoucher({
       return v;
     });
     onUpdateVouchers(updated);
-    alert("Voucher status updated successfully!");
+    setModalMessage("Voucher status updated successfully!");
+    setShowModal(true);
     setPendingReceived({});
   };
 
@@ -102,7 +104,7 @@ export default function ReconcileVoucher({
     }
   };
 
-  // Filtered and sorted vouchers
+  // Filtered and sorted vouchers (Instantly reactive to inputs)
   const processedVouchers = useMemo(() => {
     let result = vouchers.map((v) => ({
       ...v,
@@ -111,20 +113,20 @@ export default function ReconcileVoucher({
     }));
 
     // Filter by Date From
-    if (searchParams.dateFrom) {
-      result = result.filter((v) => v.trxDate >= searchParams.dateFrom);
+    if (dateFrom) {
+      result = result.filter((v) => v.trxDate >= dateFrom);
     }
     // Filter by Date To
-    if (searchParams.dateTo) {
-      result = result.filter((v) => v.trxDate <= searchParams.dateTo);
+    if (dateTo) {
+      result = result.filter((v) => v.trxDate <= dateTo);
     }
     // Filter by 'Filter By' dropdown + text input
-    if (searchParams.filterBy !== "View All") {
-      const isRec = searchParams.filterBy === "Received";
+    if (filterBy !== "View All") {
+      const isRec = filterBy === "Received";
       result = result.filter((v) => v.isReceived === isRec);
     }
-    if (searchParams.filterText) {
-      const text = searchParams.filterText.toLowerCase();
+    if (filterText) {
+      const text = filterText.toLowerCase();
       result = result.filter(
         (v) =>
           v.voucherNo.toLowerCase().includes(text) ||
@@ -133,8 +135,8 @@ export default function ReconcileVoucher({
       );
     }
     // Filter by Purpose
-    if (searchParams.typePurpose) {
-      const purpose = searchParams.typePurpose.toLowerCase();
+    if (typePurpose) {
+      const purpose = typePurpose.toLowerCase();
       result = result.filter(
         (v) =>
           v.description.toLowerCase().includes(purpose) ||
@@ -142,9 +144,14 @@ export default function ReconcileVoucher({
       );
     }
     // Filter by Voucher Type
-    if (searchParams.typeVoucherType) {
-      const vtype = searchParams.typeVoucherType.toLowerCase();
+    if (typeVoucherType) {
+      const vtype = typeVoucherType.toLowerCase();
       result = result.filter((v) => v.voucherType.toLowerCase().includes(vtype));
+    }
+    // Filter by Selected Zone
+    if (selectedZone) {
+      const zoneCode = selectedZone.substring(0, 2);
+      result = result.filter((v) => v.zoneCode === zoneCode);
     }
 
     // Sort
@@ -166,7 +173,7 @@ export default function ReconcileVoucher({
     });
 
     return result;
-  }, [vouchers, searchParams, sortField, sortDirection, pendingReceived]);
+  }, [vouchers, dateFrom, dateTo, filterBy, filterText, typePurpose, typeVoucherType, selectedZone, sortField, sortDirection, pendingReceived]);
 
   const totalPages = Math.max(1, Math.ceil(processedVouchers.length / rowCount));
   const paginatedVouchers = useMemo(() => {
@@ -203,6 +210,7 @@ export default function ReconcileVoucher({
                 onChange={(e) => setDateFrom(e.target.value)}
                 className="form-input"
                 style={{ paddingRight: "32px" }}
+                autoComplete="off"
               />
               <button
                 type="button"
@@ -248,13 +256,14 @@ export default function ReconcileVoucher({
             <label className="form-label">Date To:</label>
             <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
               <input
-                type="text"
-                placeholder="Type Search Text"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                className="form-input"
-                style={{ paddingRight: "32px" }}
-              />
+                 type="text"
+                 placeholder="Type Search Text"
+                 value={dateTo}
+                 onChange={(e) => setDateTo(e.target.value)}
+                 className="form-input"
+                 style={{ paddingRight: "32px" }}
+                 autoComplete="off"
+               />
               <button
                 type="button"
                 onClick={() => dateToRef.current?.showPicker()}
@@ -498,9 +507,8 @@ export default function ReconcileVoucher({
                       <td className="text-center">
                         <button
                           onClick={() => {
-                            if (confirm("Are you sure you want to delete this voucher?")) {
-                              onDeleteVoucher(vch.id);
-                            }
+                            setVoucherToDelete(vch.id);
+                            setShowDeleteConfirm(true);
                           }}
                           className="btn-link text-danger"
                         >
@@ -525,37 +533,304 @@ export default function ReconcileVoucher({
         </div>
 
         {/* Pagination Footer */}
-        <div className="pagination-container">
-          <label className="flex-gap-2 items-center" style={{ display: "flex" }}>
-            Go to page:
-            <select
-              value={page}
-              onChange={(e) => setPage(Number(e.target.value))}
-              className="pagination-select"
-            >
-              {Array.from({ length: totalPages }, (_, i) => (
-                <option key={i + 1} value={i + 1}>
-                  {i + 1}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="flex-gap-2 items-center" style={{ display: "flex" }}>
-            Row count:
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "12px",
+            padding: "12px 0",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "#475569" }}>
+            <span>Show</span>
             <select
               value={rowCount}
-              onChange={(e) => setRowCount(Number(e.target.value))}
-              className="pagination-select"
+              onChange={(e) => {
+                setRowCount(Number(e.target.value));
+                setPage(1);
+              }}
+              className="form-select"
+              style={{ width: "auto", minWidth: "80px" }}
             >
               <option value={10}>10</option>
               <option value={20}>20</option>
               <option value={50}>50</option>
               <option value={100}>100</option>
             </select>
-          </label>
+            <span>
+              Showing {processedVouchers.length > 0 ? (page - 1) * rowCount + 1 : 0}–{Math.min(page * rowCount, processedVouchers.length)} of {processedVouchers.length}
+            </span>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            <button
+              type="button"
+              onClick={() => setPage(1)}
+              disabled={page === 1}
+              className="btn btn-secondary"
+              style={{ padding: "4px 10px", fontSize: "12px" }}
+            >
+              First
+            </button>
+            <button
+              type="button"
+              onClick={() => setPage(page - 1)}
+              disabled={page === 1}
+              className="btn btn-secondary"
+              style={{ padding: "4px 10px", fontSize: "12px" }}
+            >
+              Prev
+            </button>
+            <span style={{ fontSize: "13px", color: "#475569", padding: "0 6px" }}>
+              Page {page} of {totalPages}
+            </span>
+            <button
+              type="button"
+              onClick={() => setPage(page + 1)}
+              disabled={page === totalPages}
+              className="btn btn-secondary"
+              style={{ padding: "4px 10px", fontSize: "12px" }}
+            >
+              Next
+            </button>
+            <button
+              type="button"
+              onClick={() => setPage(totalPages)}
+              disabled={page === totalPages}
+              className="btn btn-secondary"
+              style={{ padding: "4px 10px", fontSize: "12px" }}
+            >
+              Last
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Custom Modal Popup in Center */}
+      {showModal && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(15, 23, 42, 0.4)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "#ffffff",
+              padding: "28px 24px 24px 24px",
+              borderRadius: "16px",
+              boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+              width: "360px",
+              textAlign: "center",
+              border: "1px solid #f1f5f9",
+            }}
+          >
+            {/* Green Checkmark Circle */}
+            <div
+              style={{
+                width: "60px",
+                height: "60px",
+                borderRadius: "50%",
+                backgroundColor: "#d1fae5",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto 20px auto",
+              }}
+            >
+              <svg
+                width="32"
+                height="32"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#059669"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+
+            <h3
+              style={{
+                fontSize: "20px",
+                fontWeight: "700",
+                color: "#1e293b",
+                margin: "0 0 8px 0",
+              }}
+            >
+              Success!
+            </h3>
+
+            <p
+              style={{
+                fontSize: "14px",
+                color: "#64748b",
+                margin: "0 0 24px 0",
+                lineHeight: "1.5",
+              }}
+            >
+              {modalMessage}
+            </p>
+
+            <button
+              type="button"
+              onClick={() => setShowModal(false)}
+              className="btn btn-primary"
+              style={{
+                width: "100%",
+                padding: "10px 0",
+                fontSize: "14px",
+                fontWeight: "600",
+                borderRadius: "8px",
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(15, 23, 42, 0.4)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "#ffffff",
+              padding: "28px 24px 24px 24px",
+              borderRadius: "16px",
+              boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+              width: "380px",
+              textAlign: "center",
+              border: "1px solid #f1f5f9",
+            }}
+          >
+            {/* Warning Icon (Red Circle) */}
+            <div
+              style={{
+                width: "60px",
+                height: "60px",
+                borderRadius: "50%",
+                backgroundColor: "#fee2e2",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto 20px auto",
+              }}
+            >
+              <svg
+                width="32"
+                height="32"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#dc2626"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            </div>
+
+            <h3
+              style={{
+                fontSize: "20px",
+                fontWeight: "700",
+                color: "#1e293b",
+                margin: "0 0 8px 0",
+              }}
+            >
+              Delete Voucher
+            </h3>
+
+            <p
+              style={{
+                fontSize: "14px",
+                color: "#64748b",
+                margin: "0 0 24px 0",
+                lineHeight: "1.5",
+              }}
+            >
+              Are you sure you want to delete this voucher? This action cannot be undone.
+            </p>
+
+            <div style={{ display: "flex", gap: "12px" }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setVoucherToDelete(null);
+                }}
+                className="btn btn-secondary"
+                style={{
+                  flex: 1,
+                  padding: "10px 0",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (voucherToDelete) {
+                    onDeleteVoucher(voucherToDelete);
+                  }
+                  setShowDeleteConfirm(false);
+                  setVoucherToDelete(null);
+                }}
+                className="btn btn-primary"
+                style={{
+                  flex: 1,
+                  padding: "10px 0",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  borderRadius: "8px",
+                  backgroundColor: "#dc2626",
+                  borderColor: "#dc2626",
+                  color: "#ffffff",
+                  cursor: "pointer",
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
