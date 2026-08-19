@@ -24,19 +24,16 @@ export default function BudgetList({
   const [activeSearch, setActiveSearch] = useState("");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const [sortField, setSortField] = useState<SortField>("budgetYear");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [sortField, setSortField] = useState<SortField>("sl");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
   const [rowCount, setRowCount] = useState(10);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [budgetToDelete, setBudgetToDelete] = useState<string | null>(null);
 
   const handleDelete = (id: string) => {
-    if (onDeleteBudget) {
-      onDeleteBudget(id);
-      setToastMessage("Budget record deleted successfully!");
-      setTimeout(() => {
-        setToastMessage(null);
-      }, 4000);
-    }
+    setBudgetToDelete(id);
+    setShowDeleteConfirm(true);
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -73,10 +70,10 @@ export default function BudgetList({
 
   // Sort logic
   const sortedBudgets = [...filteredBudgets].sort((a, b) => {
-    let aVal: any = a[sortField as keyof BudgetData] ?? "";
-    let bVal: any = b[sortField as keyof BudgetData] ?? "";
+    let aVal: any = sortField === "sl" ? Number(a.id) : (a[sortField as keyof BudgetData] ?? "");
+    let bVal: any = sortField === "sl" ? Number(b.id) : (b[sortField as keyof BudgetData] ?? "");
 
-    if (typeof aVal === "string") {
+    if (sortField !== "sl" && typeof aVal === "string") {
       aVal = aVal.toLowerCase();
       bVal = bVal.toLowerCase();
     }
@@ -210,8 +207,8 @@ export default function BudgetList({
             ) : (
               paginatedBudgets.map((budget, index) => (
                 <tr key={budget.id}>
-                  <td className="text-center">
-                    {(page - 1) * rowCount + index + 1}
+                  <td className="text-center font-mono-bold">
+                    {budget.id}
                   </td>
                   <td>
                     {budget.budgetYear}
@@ -278,6 +275,106 @@ export default function BudgetList({
           </label>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.4)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+          }}
+        >
+          <div
+            className="card"
+            style={{
+              width: "360px",
+              padding: "24px",
+              borderRadius: "12px",
+              backgroundColor: "#ffffff",
+              boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
+              textAlign: "center",
+            }}
+          >
+            <h3
+              style={{
+                fontSize: "18px",
+                fontWeight: "700",
+                color: "#0f172a",
+                margin: "0 0 10px 0",
+              }}
+            >
+              Confirm Deletion
+            </h3>
+            <p
+              style={{
+                fontSize: "14px",
+                color: "#64748b",
+                margin: "0 0 24px 0",
+                lineHeight: "1.5",
+              }}
+            >
+              Are you sure you want to delete this budget record? This action cannot be undone.
+            </p>
+
+            <div style={{ display: "flex", gap: "12px" }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setBudgetToDelete(null);
+                }}
+                className="btn btn-secondary"
+                style={{
+                  flex: 1,
+                  padding: "10px 0",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (budgetToDelete && onDeleteBudget) {
+                    onDeleteBudget(budgetToDelete);
+                    setToastMessage("Budget record deleted successfully!");
+                    setTimeout(() => {
+                      setToastMessage(null);
+                    }, 4000);
+                  }
+                  setShowDeleteConfirm(false);
+                  setBudgetToDelete(null);
+                }}
+                className="btn btn-primary"
+                style={{
+                  flex: 1,
+                  padding: "10px 0",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  borderRadius: "8px",
+                  backgroundColor: "#dc2626",
+                  borderColor: "#dc2626",
+                  color: "#ffffff",
+                  cursor: "pointer",
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

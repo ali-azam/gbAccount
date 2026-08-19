@@ -36,8 +36,8 @@ export default function AccountList({ accounts, onCreateNew, onEditAccount, onDe
   const [searchText, setSearchText] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
 
-  const [sortField, setSortField] = useState<SortField>("newCode");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [sortField, setSortField] = useState<SortField>("sl");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -86,6 +86,13 @@ export default function AccountList({ accounts, onCreateNew, onEditAccount, onDe
 
   // Sort logic
   const sortedAccounts = useMemo(() => [...filteredAccounts].sort((a, b) => {
+    // Sort SL by numeric database ID so newest record always shows first
+    if (sortField === "sl") {
+      const aId = Number(a.id) || 0;
+      const bId = Number(b.id) || 0;
+      return sortDirection === "asc" ? aId - bId : bId - aId;
+    }
+
     let aVal: any = a[sortField] ?? "";
     let bVal: any = b[sortField] ?? "";
 

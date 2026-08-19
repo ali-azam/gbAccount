@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Calendar, Check } from "lucide-react";
 
 export interface BudgetData {
@@ -14,18 +14,50 @@ export interface BudgetData {
 }
 
 interface BudgetFormProps {
-  onSaveBudget: (budget: BudgetData) => void;
+  onSaveBudget: (budget: BudgetData) => Promise<boolean>;
   onBackToList: () => void;
+  initialData?: BudgetData | null;
 }
 
-export default function BudgetForm({ onSaveBudget, onBackToList }: BudgetFormProps) {
-  const [formData, setFormData] = useState({
-    budgetType: "Financial" as "Financial" | "Program",
-    budgetYear: "",
-    date: "01-Jan-0001", // Match the default placeholder '01-Jan-0001' from screenshot
-    accountCode: "",
-    amount: "0.00",
+export default function BudgetForm({ onSaveBudget, onBackToList, initialData }: BudgetFormProps) {
+  const [formData, setFormData] = useState(() => {
+    if (initialData) {
+      return {
+        budgetType: initialData.budgetType,
+        budgetYear: initialData.budgetYear,
+        date: initialData.date || "01-Jan-0001",
+        accountCode: initialData.accountCode,
+        amount: initialData.amount.toString(),
+      };
+    }
+    return {
+      budgetType: "Financial" as "Financial" | "Program",
+      budgetYear: "",
+      date: "01-Jan-0001", // Match the default placeholder '01-Jan-0001' from screenshot
+      accountCode: "",
+      amount: "0.00",
+    };
   });
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        budgetType: initialData.budgetType,
+        budgetYear: initialData.budgetYear,
+        date: initialData.date || "01-Jan-0001",
+        accountCode: initialData.accountCode,
+        amount: initialData.amount.toString(),
+      });
+    } else {
+      setFormData({
+        budgetType: "Financial",
+        budgetYear: "",
+        date: "01-Jan-0001",
+        accountCode: "",
+        amount: "0.00",
+      });
+    }
+  }, [initialData]);
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -52,10 +84,11 @@ export default function BudgetForm({ onSaveBudget, onBackToList }: BudgetFormPro
       ...prev,
       [name]: value,
     }));
-    if (errors[name]) {
+    if (errors[name] || errors.global) {
       setErrors((prev) => {
         const newErr = { ...prev };
         delete newErr[name];
+        delete newErr.global;
         return newErr;
       });
     }
@@ -66,9 +99,16 @@ export default function BudgetForm({ onSaveBudget, onBackToList }: BudgetFormPro
       ...prev,
       budgetType: type,
     }));
+    if (errors.global) {
+      setErrors((prev) => {
+        const newErr = { ...prev };
+        delete newErr.global;
+        return newErr;
+      });
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const parsedAmount = parseFloat(formData.amount) || 0;
@@ -85,17 +125,22 @@ export default function BudgetForm({ onSaveBudget, onBackToList }: BudgetFormPro
       return;
     }
 
-    onSaveBudget({
-      id: Math.random().toString(36).substring(2, 9),
+    const success = await onSaveBudget({
+      id: initialData ? initialData.id : Math.random().toString(36).substring(2, 9),
       budgetType: formData.budgetType,
       budgetYear: formData.budgetYear,
       date: formData.date,
       accountCode: formData.accountCode,
       amount: parsedAmount,
-      createdAt: new Date().toISOString().split("T")[0],
+      createdAt: initialData ? initialData.createdAt : new Date().toISOString().split("T")[0],
     });
 
-    setToastMessage("Budget record successfully created!");
+    if (success) {
+      setToastMessage(initialData ? "Budget record successfully updated!" : "Budget record successfully created!");
+      setErrors({});
+    } else {
+      setErrors({ global: "Failed to save budget. Please check that the Account Code is valid." });
+    }
   };
 
   return (
@@ -119,6 +164,11 @@ export default function BudgetForm({ onSaveBudget, onBackToList }: BudgetFormPro
         </div>
       )}
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+        {errors.global && (
+          <div style={{ color: "#dc2626", backgroundColor: "#fef2f2", border: "1px solid #fca5a5", padding: "10px 14px", borderRadius: "8px", fontSize: "14px", fontWeight: "600" }}>
+            {errors.global}
+          </div>
+        )}
         {/* Budget Type Radio Buttons */}
         <div style={{ display: "flex", gap: "16px", alignItems: "center", marginTop: "4px" }}>
           <label style={{ display: "inline-flex", alignItems: "center", gap: "6px", cursor: "pointer", fontSize: "14px", fontWeight: "bold", color: "#1e293b" }}>
@@ -267,7 +317,7 @@ export default function BudgetForm({ onSaveBudget, onBackToList }: BudgetFormPro
         {/* Create Button */}
         <div className="form-actions" style={{ display: "flex", gap: "12px", marginTop: "4px" }}>
           <button type="submit" className="btn btn-primary" style={{ padding: "8px 20px" }}>
-            Create
+            {initialData ? "Update" : "Create"}
           </button>
         </div>
       </form>

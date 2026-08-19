@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using GBWeb.Implementation.Application.Common.Interfaces;
 using GBWeb.Implementation.Domain.Common.Entities;
 using GBWeb.Implementation.Domain.Common.Interfaces;
@@ -24,6 +24,8 @@ public sealed class ApplicationDbContext(
     public DbSet<GbAccount> GbAccounts => Set<GbAccount>();
     public DbSet<AccTrxMaster> AccTrxMasters => Set<AccTrxMaster>();
     public DbSet<AccTrxDetail> AccTrxDetails => Set<AccTrxDetail>();
+    public DbSet<Budget> Budgets => Set<Budget>();
+    public DbSet<BudgetParticular> BudgetParticulars => Set<BudgetParticular>();
 
     public DbSet<ApprovalRequest> ApprovalRequests =>
         Set<ApprovalRequest>();
@@ -281,6 +283,37 @@ public sealed class ApplicationDbContext(
                 .HasForeignKey(x => x.OrgID)
                 .OnDelete(DeleteBehavior.Restrict);
         });
+
+        builder.Entity<Budget>(entity =>
+        {
+            entity.ToTable("Budget", "dbo");
+            entity.HasKey(x => x.BudgetID);
+            entity.Property(x => x.BudgetID).ValueGeneratedOnAdd();
+            entity.Property(x => x.CreateUser).HasMaxLength(35).IsUnicode(false).IsRequired();
+            entity.Property(x => x.CreateDate).HasColumnType("smalldatetime").IsRequired();
+            entity.Property(x => x.InActiveDate).HasColumnType("smalldatetime");
+            entity.Property(x => x.TrxDate).HasColumnType("date");
+
+            // Budget -> AccChart relationship
+            entity.HasOne(x => x.Account)
+                .WithMany()
+                .HasForeignKey(x => x.AccID)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<BudgetParticular>(entity =>
+        {
+            entity.ToTable("BudgetParticular", "dbo");
+            entity.HasKey(x => x.BudgetParticularId);
+            entity.Property(x => x.BudgetParticularId).ValueGeneratedOnAdd();
+            entity.Property(x => x.BudgetParticularCode).HasMaxLength(50);
+            entity.Property(x => x.BudgetParticularName).HasMaxLength(50);
+            entity.Property(x => x.CreateUser).HasMaxLength(35).IsUnicode(false).IsRequired();
+            entity.Property(x => x.CreateDate).HasColumnType("smalldatetime").IsRequired();
+            entity.Property(x => x.InActiveDate).HasColumnType("smalldatetime");
+        });
     }
 }
+
+
 

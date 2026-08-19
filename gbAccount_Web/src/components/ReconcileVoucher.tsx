@@ -49,8 +49,8 @@ export default function ReconcileVoucher({
   }, [vouchers, dateFrom, dateTo]);
 
   // Table sorting & pagination
-  const [sortField, setSortField] = useState<SortField>("voucherNo");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [sortField, setSortField] = useState<SortField>("trxDate");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
   const [rowCount, setRowCount] = useState(20);
 

@@ -7,6 +7,9 @@ import {
   officeLevelLabel,
   noteLabel,
   natureLabel,
+  moduleByName,
+  officeLevelByName,
+  noteByName,
 } from "./lookups";
 
 /** Shape of an AccChart row as returned by /api/accounts. */
@@ -68,6 +71,43 @@ interface UseAccountsResult {
   loading: boolean;
   error: string | null;
   reload: () => void;
+  saveAccount: (account: AccountData) => Promise<boolean>;
+  deleteAccount: (id: string) => Promise<boolean>;
+}
+
+/**
+ * Maps an AccountData (frontend shape with label strings) back to the
+ * AccChart entity shape the backend expects (numeric IDs).
+ */
+function toAccChartPayload(account: AccountData) {
+  const NATURE_REVERSE: Record<string, string> = {
+    Debit: "1",
+    Credit: "2",
+  };
+
+  // Map category name → ID (matches AccCategory table)
+  const CATEGORY_IDS: Record<string, number> = {
+    Assets: 1,
+    Liability: 2,
+    Expenditure: 3,
+    Income: 4,
+  };
+
+  return {
+    AccCode: account.newCode,
+    AccName: account.accountHead,
+    AccLevel: account.level ?? null,
+    CategoryID: CATEGORY_IDS[account.category] ?? null,
+    OfficeLevel: officeLevelByName(account.officeLevel)?.id ?? null,
+    IsTransaction: account.isTransaction ?? false,
+    Nature: NATURE_REVERSE[account.nature] ?? null,
+    ModuleID: moduleByName(account.module)?.id ?? null,
+    NoteID: noteByName(account.note)?.id ?? null,
+    OrgID: 1,
+    IsActive: true,
+    CreateUser: "suser_sname()",
+    CreateDate: new Date().toISOString(),
+  };
 }
 
 /**
@@ -90,7 +130,7 @@ export function useAccounts(): UseAccountsResult {
 
     async function load() {
       try {
-        const res = await fetch("/api/accounts");
+        const res = await fetch("http://localhost:5201/api/AccCharts");
         const json = await res.json();
 
         if (cancelled) return;
@@ -117,5 +157,61 @@ export function useAccounts(): UseAccountsResult {
     };
   }, [reloadKey]);
 
-  return { accounts, setAccounts, loading, error, reload };
+  const saveAccount = async (account: AccountData): Promise<boolean> => {
+    try {
+      // A real AccID from the database is always a positive integer.
+      // Anything else (random string from the form, "0", empty) = new record → POST.
+      const accId = parseInt(account.id, 10);
+      const isEdit = !isNaN(accId) && accId > 0;
+      const payload = toAccChartPayload(account);
+
+      let res: Response;
+      if (isEdit) {
+        res = await fetch(`http://localhost:5201/api/AccCharts/${account.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...payload, AccID: Number(account.id) }),
+        });
+      } else {
+        res = await fetch("http://localhost:5201/api/AccCharts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+      }
+
+      const json = await res.json();
+      if (json.success || res.status === 201) {
+        reload();
+        return true;
+      } else {
+        console.error("Save account failed:", json.message);
+        return false;
+      }
+    } catch (err) {
+      console.error("Save account error:", err);
+      return false;
+    }
+  };
+
+  const deleteAccount = async (id: string): Promise<boolean> => {
+    try {
+      const res = await fetch(`http://localhost:5201/api/AccCharts/${id}`, {
+        method: "DELETE",
+      });
+      const json = await res.json();
+      if (json.success) {
+        reload();
+        return true;
+      } else {
+        console.error("Delete account failed:", json.message);
+        return false;
+      }
+    } catch (err) {
+      console.error("Delete account error:", err);
+      return false;
+    }
+  };
+
+  return { accounts, setAccounts, loading, error, reload, saveAccount, deleteAccount };
 }

@@ -34,7 +34,7 @@ export interface AccountData {
 }
 
 interface AccountFormProps {
-  onSaveAccount: (account: AccountData) => void;
+  onSaveAccount: (account: AccountData) => Promise<boolean>;
   onBackToList: () => void;
   initialData?: AccountData | null;
 }
@@ -127,7 +127,7 @@ export default function AccountForm({ onSaveAccount, onBackToList, initialData }
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validate()) {
@@ -136,7 +136,8 @@ export default function AccountForm({ onSaveAccount, onBackToList, initialData }
 
     const newAccount: AccountData = {
       ...formData,
-      id: initialData ? initialData.id : Date.now().toString(),
+      // Prefix with "new_" for new records so the API hook correctly sends POST
+      id: initialData ? initialData.id : `new_${Date.now()}`,
       sl: initialData ? initialData.sl : undefined,
       first: formData.parentCode ? formData.parentCode : "-",
       second: formData.category !== NOTE_PLACEHOLDER ? formData.category : "-",
@@ -146,22 +147,26 @@ export default function AccountForm({ onSaveAccount, onBackToList, initialData }
       createdAt: initialData ? initialData.createdAt : new Date().toLocaleDateString(),
     };
 
-    onSaveAccount(newAccount);
+    const success = await onSaveAccount(newAccount);
 
-    setToastMessage(initialData ? "Account Code successfully updated!" : "Account Code successfully created!");
-    setTimeout(() => {
-      setToastMessage(null);
-    }, 3500);
+    if (success) {
+      setToastMessage(initialData ? "Account Code successfully updated!" : "Account Code successfully created!");
+      setTimeout(() => {
+        setToastMessage(null);
+      }, 3500);
 
-    setFormData((prev) => ({
-      ...prev,
-      parentCode: "",
-      newCode: "",
-      accountHead: "",
-      nature: "",
-      category: NOTE_PLACEHOLDER,
-      note: NOTE_PLACEHOLDER,
-    }));
+      setFormData((prev) => ({
+        ...prev,
+        parentCode: "",
+        newCode: "",
+        accountHead: "",
+        nature: "",
+        category: NOTE_PLACEHOLDER,
+        note: NOTE_PLACEHOLDER,
+      }));
+    } else {
+      setErrors({ newCode: "Failed to save. Please check the details and try again." });
+    }
   };
 
   return (

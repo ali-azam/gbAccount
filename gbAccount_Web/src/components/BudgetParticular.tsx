@@ -26,6 +26,8 @@ export default function BudgetParticular({
   const [particularName, setParticularName] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [particularToDelete, setParticularToDelete] = useState<string | null>(null);
 
   const [sortField, setSortField] = useState<SortField>("particularName");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -79,13 +81,8 @@ export default function BudgetParticular({
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this particular?")) {
-      onDeleteParticular(id);
-      if (editingId === id) {
-        setEditingId(null);
-        setParticularName("");
-      }
-    }
+    setParticularToDelete(id);
+    setShowDeleteConfirm(true);
   };
 
   // Inline styles for pagination buttons matching the screenshot
@@ -287,6 +284,106 @@ export default function BudgetParticular({
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.4)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+          }}
+        >
+          <div
+            className="card"
+            style={{
+              width: "360px",
+              padding: "24px",
+              borderRadius: "12px",
+              backgroundColor: "#ffffff",
+              boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
+              textAlign: "center",
+            }}
+          >
+            <h3
+              style={{
+                fontSize: "18px",
+                fontWeight: "700",
+                color: "#0f172a",
+                margin: "0 0 10px 0",
+              }}
+            >
+              Confirm Deletion
+            </h3>
+            <p
+              style={{
+                fontSize: "14px",
+                color: "#64748b",
+                margin: "0 0 24px 0",
+                lineHeight: "1.5",
+              }}
+            >
+              Are you sure you want to delete this particular? This action cannot be undone.
+            </p>
+
+            <div style={{ display: "flex", gap: "12px" }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setParticularToDelete(null);
+                }}
+                className="btn btn-secondary"
+                style={{
+                  flex: 1,
+                  padding: "10px 0",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (particularToDelete) {
+                    onDeleteParticular(particularToDelete);
+                    if (editingId === particularToDelete) {
+                      setEditingId(null);
+                      setParticularName("");
+                    }
+                  }
+                  setShowDeleteConfirm(false);
+                  setParticularToDelete(null);
+                }}
+                className="btn btn-primary"
+                style={{
+                  flex: 1,
+                  padding: "10px 0",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  borderRadius: "8px",
+                  backgroundColor: "#dc2626",
+                  borderColor: "#dc2626",
+                  color: "#ffffff",
+                  cursor: "pointer",
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-using System.Threading.RateLimiting;
+﻿using System.Threading.RateLimiting;
 using GBWeb.Implementation.Api.Middleware;
 using GBWeb.Implementation.Api.Security;
 using GBWeb.Implementation.Application;
@@ -163,7 +163,10 @@ app.UseSerilogRequestLogging(options =>
     };
 });
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseAuthentication();
 

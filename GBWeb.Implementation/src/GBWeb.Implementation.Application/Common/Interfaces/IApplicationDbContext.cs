@@ -1,4 +1,4 @@
-using GBWeb.Implementation.Domain.Common.Entities;
+﻿using GBWeb.Implementation.Domain.Common.Entities;
 using GBWeb.Implementation.Domain.Modules.Organization.Entities;
 using GBWeb.Implementation.Domain.Modules.Account.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +16,9 @@ public interface IApplicationDbContext
     DbSet<AccTrxMaster> AccTrxMasters { get; }
     DbSet<AccTrxDetail> AccTrxDetails { get; }
     DbSet<GbAccount> GbAccounts { get; }
+    DbSet<Budget> Budgets { get; }
+    DbSet<BudgetParticular> BudgetParticulars { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 
 }
+
