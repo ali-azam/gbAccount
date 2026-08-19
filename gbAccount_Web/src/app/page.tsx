@@ -28,6 +28,8 @@ import IncomeExpenditureReport from "@/components/IncomeExpReport";
 import IncomeExpenditureReportByOffice from "@/components/IncomeExpReportOffice";
 import { useAccounts } from "@/lib/useAccounts";
 import { useVouchers } from "@/lib/useVouchers";
+import { useBudgets } from "@/lib/useBudgets";
+import { useBudgetParticulars } from "@/lib/useBudgetParticulars";
 import FundTransfer from "@/components/FundTransfer";
 
 
@@ -75,6 +77,8 @@ export default function Home() {
     setAccounts,
     loading: accountsLoading,
     error: accountsError,
+    saveAccount,
+    deleteAccount,
   } = useAccounts();
 
   const [voucherSearch, setVoucherSearch] = useState("");
@@ -90,9 +94,17 @@ export default function Home() {
     error: vouchersError,
   } = useVouchers(voucherSearch, voucherFilterBy);
 
-  // Budget Data State
-  const [budgets, setBudgets] = useState<BudgetData[]>([]);
+  // Budget Data State — loaded from database via /api/Budgets
+  const {
+    budgets,
+    setBudgets,
+    saveBudget,
+    deleteBudget,
+    loading: budgetsLoading,
+    error: budgetsError,
+  } = useBudgets();
   const [budgetView, setBudgetView] = useState<"create" | "list">("create");
+  const [editingBudget, setEditingBudget] = useState<BudgetData | null>(null);
 
   // Account Note State
   const [accountNotes, setAccountNotes] = useState<AccountNoteData[]>(() => {
@@ -110,29 +122,16 @@ export default function Home() {
     localStorage.setItem("accountNotes", JSON.stringify(accountNotes));
   }, [accountNotes]);
 
-  // Budget Particular State
-  const [particulars, setParticulars] = useState<BudgetParticularData[]>(() => {
-    if (typeof window === "undefined") return [];
-    try {
-      const saved = localStorage.getItem("particulars");
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    
-    // Default values matching your screenshot
-    return [
-      { id: "1", particularName: "No. of Samity" },
-      { id: "2", particularName: "No. of Member" },
-      { id: "3", particularName: "Total Service Charge Collection" },
-      { id: "4", particularName: "Loan Disbursement" },
-      { id: "5", particularName: "Loan Collection" },
-      { id: "6", particularName: "Savings Collection" },
-      { id: "7", particularName: "Savings Refund" },
-    ];
-  });
-
-  useEffect(() => {
-    localStorage.setItem("particulars", JSON.stringify(particulars));
-  }, [particulars]);
+  // Budget Particular State — loaded from database via /api/BudgetParticulars
+  const {
+    particulars,
+    setParticulars,
+    saveParticular,
+    updateParticular,
+    deleteParticular,
+    loading: particularsLoading,
+    error: particularsError,
+  } = useBudgetParticulars();
 
   // Target Achievement State
   const [targets, setTargets] = useState<TargetAchievementData[]>(() => {
@@ -149,17 +148,14 @@ export default function Home() {
     localStorage.setItem("targets", JSON.stringify(targets));
   }, [targets]);
 
-  const handleSaveAccount = (newAccount: AccountData) => {
-    if (editingAccount) {
-      setAccounts((prev) => prev.map((acc) => (acc.id === newAccount.id ? { ...acc, ...newAccount } : acc)));
+  const handleSaveAccount = async (newAccount: AccountData): Promise<boolean> => {
+    const success = await saveAccount(newAccount);
+    if (success) {
       setEditingAccount(null);
       setIsEditModalOpen(false);
-    } else {
-      setAccounts((prev) => [
-        { ...newAccount, sl: prev.length + 1 },
-        ...prev,
-      ]);
+      setAccountView("list");
     }
+    return success;
   };
 
   const handleSaveVoucher = async (newVoucher: VoucherData) => {
@@ -170,8 +166,8 @@ export default function Home() {
     }
   };
 
-  const handleDeleteAccount = (id: string) => {
-    setAccounts((prev) => prev.filter((a) => a.id !== id));
+  const handleDeleteAccount = async (id: string) => {
+    await deleteAccount(id);
   };
 
   const handleDeleteVoucher = async (id: string) => {
@@ -286,6 +282,7 @@ export default function Home() {
               <button
                 onClick={() => {
                   setBudgetView(budgetView === "create" ? "list" : "create");
+                  setEditingBudget(null);
                 }}
                 className="btn-link"
               >
@@ -363,17 +360,14 @@ export default function Home() {
           ) : activeSubMenu === "budget-particular" ? (
             <BudgetParticular
               particulars={particulars}
-              onSaveParticular={(name) => {
-                setParticulars((prev) => [
-                  ...prev,
-                  { id: Math.random().toString(36).substring(2, 9), particularName: name }
-                ]);
+              onSaveParticular={async (name) => {
+                await saveParticular(name);
               }}
-              onDeleteParticular={(id) => {
-                setParticulars((prev) => prev.filter((p) => p.id !== id));
+              onDeleteParticular={async (id) => {
+                await deleteParticular(id);
               }}
-              onUpdateParticular={(id, name) => {
-                setParticulars((prev) => prev.map((p) => p.id === id ? { ...p, particularName: name } : p));
+              onUpdateParticular={async (id, name) => {
+                await updateParticular(id, name);
               }}
             />
           ) : activeSubMenu === "fund-transfer" ? (
@@ -410,26 +404,47 @@ export default function Home() {
             budgetView === "create" ? (
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 <div className="flex-between-header">
-                  <h1 className="page-title">Budget Create</h1>
+                  <h1 className="page-title">{editingBudget ? "Budget Edit" : "Budget Create"}</h1>
                   <button
-                    onClick={() => setBudgetView("list")}
+                    onClick={() => {
+                      setBudgetView("list");
+                      setEditingBudget(null);
+                    }}
                     className="btn-link"
                   >
                     Back to List
                   </button>
                 </div>
                 <BudgetForm
-                  onSaveBudget={(newBudget) => {
-                    setBudgets((prev) => [newBudget, ...prev]);
+                  initialData={editingBudget}
+                  onSaveBudget={async (newBudget) => {
+                    const success = await saveBudget(newBudget);
+                    if (success) {
+                      setEditingBudget(null);
+                      setBudgetView("list");
+                    }
+                    return success;
                   }}
-                  onBackToList={() => setBudgetView("list")}
+                  onBackToList={() => {
+                    setBudgetView("list");
+                    setEditingBudget(null);
+                  }}
                 />
               </div>
             ) : (
               <BudgetList
                 budgets={budgets}
-                onCreateNew={() => setBudgetView("create")}
-                onDeleteBudget={(id) => setBudgets((prev) => prev.filter((b) => b.id !== id))}
+                onCreateNew={() => {
+                  setEditingBudget(null);
+                  setBudgetView("create");
+                }}
+                onEditBudget={(budget) => {
+                  setEditingBudget(budget);
+                  setBudgetView("create");
+                }}
+                onDeleteBudget={async (id) => {
+                  await deleteBudget(id);
+                }}
               />
             )
           ) : activeSubMenu === "reconcile-entries" ? (
@@ -449,7 +464,7 @@ export default function Home() {
                 try {
                   await Promise.all(
                     modified.map((v) =>
-                      fetch(`/api/vouchers/${v.id}`, {
+                      fetch(`http://localhost:5201/api/Vouchers/${v.id}`, {
                         method: "PUT",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(v),

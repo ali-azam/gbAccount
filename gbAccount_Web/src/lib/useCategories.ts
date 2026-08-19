@@ -30,13 +30,17 @@ export function useCategories(): UseCategoriesResult {
 
     async function load() {
       try {
-        const res = await fetch("/api/categories");
+        const res = await fetch("http://localhost:5201/api/AccCategories");
         const json = await res.json();
 
         if (cancelled) return;
 
         if (json.success && Array.isArray(json.data)) {
-          setCategories(json.data);
+          const mapped = json.data.map((cat: any) => ({
+            CategoryID: cat.categoryID ?? cat.CategoryID,
+            CategoryName: cat.categoryName ?? cat.CategoryName,
+          }));
+          setCategories(mapped);
           setError(null);
         } else {
           setError(json.message ?? "Failed to load categories");

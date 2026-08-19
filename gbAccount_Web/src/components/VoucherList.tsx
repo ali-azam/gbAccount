@@ -15,6 +15,7 @@ interface VoucherListProps {
 }
 
 type SortField =
+  | "id"
   | "voucherNo"
   | "trxDate"
   | "transactionType"
@@ -33,8 +34,8 @@ export default function VoucherList({
   onEditVoucher,
   onDeleteVoucher,
 }: VoucherListProps) {
-  const [sortField, setSortField] = useState<SortField>("voucherNo");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [sortField, setSortField] = useState<SortField>("id");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
   const [rowCount, setRowCount] = useState(20);
 
@@ -88,6 +89,19 @@ export default function VoucherList({
   }, [vouchers, filterBy, activeSearch, onSearch]);
 
   const sortedVouchers = [...filteredVouchers].sort((a, b) => {
+    // Sort by numeric DB id (TrxMasterID) so newest voucher always appears first
+    if (sortField === "id") {
+      return sortDirection === "asc"
+        ? Number(a.id) - Number(b.id)
+        : Number(b.id) - Number(a.id);
+    }
+    // Sort voucherNo numerically
+    if (sortField === "voucherNo") {
+      const aNum = parseInt(a.voucherNo, 10) || 0;
+      const bNum = parseInt(b.voucherNo, 10) || 0;
+      return sortDirection === "asc" ? aNum - bNum : bNum - aNum;
+    }
+
     let aVal: any = a[sortField] ?? "";
     let bVal: any = b[sortField] ?? "";
 
