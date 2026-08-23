@@ -13,7 +13,7 @@ export interface AccountNoteData {
 }
 
 interface AccountNoteFormProps {
-  onSaveNote: (note: AccountNoteData) => void;
+  onSaveNote: (note: AccountNoteData) => Promise<boolean>;
   onBackToList: () => void;
 }
 
@@ -41,7 +41,7 @@ export default function AccountNoteForm({ onSaveNote, onBackToList }: AccountNot
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Basic Validation
@@ -54,19 +54,21 @@ export default function AccountNoteForm({ onSaveNote, onBackToList }: AccountNot
       return;
     }
 
-    onSaveNote({
-      id: Math.random().toString(36).substring(2, 9),
+    const success = await onSaveNote({
+      id: "", // API will generate the ID
       noteNo: formData.noteNo,
       noteName: formData.noteName,
       isActive: true,
       createdAt: new Date().toISOString().split("T")[0],
     });
 
-    setToastMessage("Account note successfully created!");
-    setFormData({
-      noteNo: "",
-      noteName: "",
-    });
+    if (success) {
+      setToastMessage("Account note successfully created!");
+      setFormData({
+        noteNo: "",
+        noteName: "",
+      });
+    }
   };
 
   return (

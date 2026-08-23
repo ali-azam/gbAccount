@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { AccountData } from "./AccountForm";
 import { X } from "lucide-react";
-import { MODULES, OFFICE_LEVELS, ACCOUNT_NOTES, NOTE_PLACEHOLDER } from "@/lib/lookups";
+import { MODULES, OFFICE_LEVELS, NOTE_PLACEHOLDER } from "@/lib/lookups";
 import { useCategories } from "@/lib/useCategories";
+import { useAccountNotes } from "@/lib/useAccountNotes";
 
 interface EditAccountModalProps {
   account: AccountData;
@@ -25,6 +26,12 @@ export default function EditAccountModal({
     loading: categoriesLoading,
     error: categoriesError,
   } = useCategories();
+
+  const {
+    accountNotes,
+    loading: notesLoading,
+    error: notesError,
+  } = useAccountNotes();
 
   useEffect(() => {
     setFormData(account);
@@ -172,10 +179,12 @@ export default function EditAccountModal({
               className="form-select"
               style={{ fontSize: "12px", padding: "4px 8px" }}
             >
-              <option value={NOTE_PLACEHOLDER}>{NOTE_PLACEHOLDER}</option>
-              {ACCOUNT_NOTES.map((note) => (
-                <option key={note.id} value={note.name}>
-                  {note.name}
+              <option value={NOTE_PLACEHOLDER}>
+                {notesLoading ? "Loading..." : NOTE_PLACEHOLDER}
+              </option>
+              {accountNotes.map((note) => (
+                <option key={note.id} value={note.noteName}>
+                  {note.noteName}
                 </option>
               ))}
             </select>

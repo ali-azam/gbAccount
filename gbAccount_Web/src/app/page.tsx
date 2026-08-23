@@ -33,6 +33,9 @@ import { useAccounts } from "@/lib/useAccounts";
 import { useVouchers } from "@/lib/useVouchers";
 import { useBudgets } from "@/lib/useBudgets";
 import { useBudgetParticulars } from "@/lib/useBudgetParticulars";
+import { useAccountNotes } from "@/lib/useAccountNotes";
+import { useTargetAchievements } from "@/lib/useTargetAchievements";
+import { useFundTransfers } from "@/lib/useFundTransfers";
 import FundTransfer from "@/components/FundTransfer";
 
 
@@ -121,21 +124,14 @@ export default function Home() {
   const [budgetView, setBudgetView] = useState<"create" | "list">("create");
   const [editingBudget, setEditingBudget] = useState<BudgetData | null>(null);
 
-  // Account Note State
-  const [accountNotes, setAccountNotes] = useState<AccountNoteData[]>(() => {
-    if (typeof window === "undefined") return [];
-    try {
-      const saved = localStorage.getItem("accountNotes");
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  // Account Note State — loaded from the database via /api/AccNotes
+  const {
+    accountNotes,
+    saveAccountNote,
+    loading: accountNotesLoading,
+    error: accountNotesError,
+  } = useAccountNotes();
   const [accountNoteView, setAccountNoteView] = useState<"create" | "list">("list");
-
-  useEffect(() => {
-    localStorage.setItem("accountNotes", JSON.stringify(accountNotes));
-  }, [accountNotes]);
 
   // Budget Particular State — loaded from database via /api/BudgetParticulars
   const {
@@ -148,20 +144,22 @@ export default function Home() {
     error: particularsError,
   } = useBudgetParticulars();
 
-  // Target Achievement State
-  const [targets, setTargets] = useState<TargetAchievementData[]>(() => {
-    if (typeof window === "undefined") return [];
-    try {
-      const saved = localStorage.getItem("targets");
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  // Target Achievement State — loaded from backend API / localStorage
+  const {
+    targets,
+    saveTarget,
+    deleteTarget,
+    yearlyTargetData,
+  } = useTargetAchievements();
 
-  useEffect(() => {
-    localStorage.setItem("targets", JSON.stringify(targets));
-  }, [targets]);
+  // Fund Transfer State — loaded from backend API / localStorage
+  const {
+    transfers,
+    saveTransfer,
+    deleteTransfer,
+    fundLoans,
+    mappings,
+  } = useFundTransfers();
 
   const handleSaveAccount = async (newAccount: AccountData): Promise<boolean> => {
     const success = await saveAccount(newAccount);
@@ -370,14 +368,14 @@ export default function Home() {
             <TargetAchievement
               targets={targets}
               particulars={particulars}
-              onSaveTarget={(newTarget) => {
-                setTargets((prev) => [newTarget, ...prev]);
+              onSaveTarget={async (newTarget) => {
+                await saveTarget(newTarget);
               }}
-              onDeleteTarget={(id) => {
-                setTargets((prev) => prev.filter((t) => t.id !== id));
+              onDeleteTarget={async (id) => {
+                await deleteTarget(id);
               }}
-              onUpdateTarget={(updatedTarget) => {
-                setTargets((prev) => prev.map((t) => t.id === updatedTarget.id ? updatedTarget : t));
+              onUpdateTarget={async (updatedTarget) => {
+                await saveTarget(updatedTarget);
               }}
             />
           ) : activeSubMenu === "budget-particular" ? (
@@ -394,7 +392,15 @@ export default function Home() {
               }}
             />
           ) : activeSubMenu === "fund-transfer" ? (
-            <FundTransfer />
+            <FundTransfer
+              transfers={transfers}
+              onSaveTransfer={async (newTransfer) => {
+                return await saveTransfer(newTransfer);
+              }}
+              onDeleteTransfer={async (id) => {
+                return await deleteTransfer(id);
+              }}
+            />
           ) : activeSubMenu === "account-note" ? (
             accountNoteView === "create" ? (
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -408,11 +414,8 @@ export default function Home() {
                   </button>
                 </div>
                 <AccountNoteForm
-                  onSaveNote={(newNote) => {
-                    setAccountNotes((prev) => [
-                      { ...newNote, sl: prev.length + 1 },
-                      ...prev,
-                    ]);
+                  onSaveNote={async (newNote) => {
+                    return await saveAccountNote(newNote);
                   }}
                   onBackToList={() => setAccountNoteView("list")}
                 />

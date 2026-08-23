@@ -23,8 +23,13 @@ interface Organization {
   OrganizationName: string;
 }
 
+import { useFundTransfers } from "@/lib/useFundTransfers";
+
 interface FundTransferProps {
   onBackToMenu?: () => void;
+  transfers?: FundTransferData[];
+  onSaveTransfer?: (transfer: FundTransferData) => Promise<boolean>;
+  onDeleteTransfer?: (id: string) => Promise<boolean>;
 }
 
 type SortField =
@@ -37,12 +42,27 @@ type SortField =
   | "debit"
   | "credit";
 
-export default function FundTransfer({ onBackToMenu }: FundTransferProps) {
+export default function FundTransfer({
+  onBackToMenu,
+  transfers: propTransfers,
+  onSaveTransfer: propSaveTransfer,
+  onDeleteTransfer: propDeleteTransfer,
+}: FundTransferProps) {
+  // Api Hook
+  const {
+    transfers: hookTransfers,
+    saveTransfer: hookSaveTransfer,
+    deleteTransfer: hookDeleteTransfer,
+  } = useFundTransfers();
+
+  const transfers = propTransfers ?? hookTransfers;
+  const saveTransfer = propSaveTransfer ?? hookSaveTransfer;
+  const deleteTransfer = propDeleteTransfer ?? hookDeleteTransfer;
+
   // Views: "list" | "create" | "view"
   const [view, setView] = useState<"list" | "create" | "view">("list");
   
   // Data States
-  const [transfers, setTransfers] = useState<FundTransferData[]>([]);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [loadingOrgs, setLoadingOrgs] = useState(false);
 
@@ -76,40 +96,30 @@ export default function FundTransfer({ onBackToMenu }: FundTransferProps) {
     searchText: "",
   });
 
+  // Toast Notification State
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const showToast = (message: string, type: "success" | "error" = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3500);
+  };
+
+  // Delete Confirmation Modal State
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
   // Table Sorting and Pagination
-  const [sortField, setSortField] = useState<SortField>("trxDate");
+  const [sortField, setSortField] = useState<SortField | "">("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
   const [rowCount, setRowCount] = useState(20);
 
-  // Load transfers from localStorage
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("fundTransfers");
-      if (saved) {
-        setTransfers(JSON.parse(saved));
-      }
-    } catch (e) {
-      console.error("Failed to load fund transfers:", e);
-    }
-  }, []);
 
-  // Save transfers to localStorage
-  const saveToLocalStorage = (updated: FundTransferData[]) => {
-    setTransfers(updated);
-    try {
-      localStorage.setItem("fundTransfers", JSON.stringify(updated));
-    } catch (e) {
-      console.error("Failed to save fund transfers:", e);
-    }
-  };
 
   // Fetch organizations
   useEffect(() => {
     const fetchOrgs = async () => {
       setLoadingOrgs(true);
       try {
-        const res = await fetch("/api/organizations");
+        const res = await fetch("http://localhost:5201/api/Organizations");
         if (!res.ok) throw new Error("API returned error status");
         const json = await res.json();
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
@@ -178,28 +188,30 @@ export default function FundTransfer({ onBackToMenu }: FundTransferProps) {
   };
 
   // Handle Form Submission
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
 
-    const selectedOrg = organizations.find((o) => o.OrgID.toString() === formData.receiverOfficeId);
-    const receiverOfficeName = selectedOrg ? selectedOrg.OrganizationName : "Unknown Office";
+    const selectedOrg = organizations.find((o) => {
+      const orgObj = o as any;
+      const id = String(orgObj?.OrgID ?? orgObj?.orgID ?? orgObj?.id ?? "");
+      return id === formData.receiverOfficeId;
+    });
+    const receiverOfficeName = selectedOrg
+      ? String((selectedOrg as any).OrganizationName ?? (selectedOrg as any).organizationName ?? "Verc")
+      : (formData.receiverOfficeId || "Verc");
 
     const newRecord: FundTransferData = {
       ...formData,
-      id: selectedTransfer ? selectedTransfer.id : Math.random().toString(36).substring(2, 9),
+      id: selectedTransfer ? selectedTransfer.id : `new_${Date.now()}`,
       receiverOfficeName,
       createdAt: selectedTransfer ? selectedTransfer.createdAt : new Date().toLocaleDateString(),
     };
 
-    let updatedTransfers: FundTransferData[];
-    if (selectedTransfer) {
-      updatedTransfers = transfers.map((t) => (t.id === selectedTransfer.id ? newRecord : t));
-    } else {
-      updatedTransfers = [newRecord, ...transfers];
-    }
-
-    saveToLocalStorage(updatedTransfers);
+    await saveTransfer(newRecord);
+    showToast(selectedTransfer ? "Fund Transfer updated successfully!" : "Fund Transfer created successfully!", "success");
+    setPage(1);
+    setSortField("");
     setView("list");
     setSelectedTransfer(null);
     resetForm();
@@ -245,47 +257,45 @@ export default function FundTransfer({ onBackToMenu }: FundTransferProps) {
   // Filter transfers list
   const filteredTransfers = transfers.filter((t) => {
     // 1. Date From filter
-    if (searchParams.dateFrom && t.trxDate < searchParams.dateFrom) {
-      return false;
+    if (searchParams.dateFrom) {
+      if (t.trxDate < searchParams.dateFrom) return false;
     }
     // 2. Date To filter
-    if (searchParams.dateTo && t.trxDate > searchParams.dateTo) {
-      return false;
+    if (searchParams.dateTo) {
+      if (t.trxDate > searchParams.dateTo) return false;
     }
-    // 3. Text Search / Filter By
-    if (searchParams.searchText) {
-      const q = searchParams.searchText.toLowerCase();
-      if (searchParams.filterBy === "View All") {
-        return (
-          t.receiverOfficeName.toLowerCase().includes(q) ||
-          t.reffNo.toLowerCase().includes(q) ||
-          t.sndrVoucherNo.toLowerCase().includes(q) ||
-          t.recVoucherNo.toLowerCase().includes(q) ||
-          t.hoVoucherNo.toLowerCase().includes(q)
-        );
-      } else if (searchParams.filterBy === "Receiver Office") {
-        return t.receiverOfficeName.toLowerCase().includes(q);
-      } else if (searchParams.filterBy === "Reference No") {
-        return t.reffNo.toLowerCase().includes(q);
+    // 3. Search Text filter
+    if (searchParams.searchText.trim()) {
+      const query = searchParams.searchText.toLowerCase();
+      const matchOffice = t.receiverOfficeName.toLowerCase().includes(query);
+      const matchReff = t.reffNo.toLowerCase().includes(query);
+      const matchSndr = t.sndrVoucherNo.toLowerCase().includes(query);
+      const matchRec = t.recVoucherNo.toLowerCase().includes(query);
+      const matchHo = t.hoVoucherNo.toLowerCase().includes(query);
+      const matchDesc = t.description.toLowerCase().includes(query);
+      if (!matchOffice && !matchReff && !matchSndr && !matchRec && !matchHo && !matchDesc) {
+        return false;
       }
     }
     return true;
   });
 
   // Sort transfers list
-  const sortedTransfers = [...filteredTransfers].sort((a, b) => {
-    let aVal = a[sortField];
-    let bVal = b[sortField];
+  const sortedTransfers = !sortField
+    ? [...filteredTransfers]
+    : [...filteredTransfers].sort((a, b) => {
+        let aVal = a[sortField];
+        let bVal = b[sortField];
 
-    if (typeof aVal === "string") {
-      aVal = aVal.toLowerCase();
-      bVal = (bVal as string).toLowerCase();
-    }
+        if (typeof aVal === "string") {
+          aVal = aVal.toLowerCase();
+          bVal = (bVal as string).toLowerCase();
+        }
 
-    if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
-    if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
-    return 0;
-  });
+        if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
+        if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
+        return 0;
+      });
 
   // Paginate list
   const totalPages = Math.max(1, Math.ceil(sortedTransfers.length / rowCount));
@@ -313,14 +323,116 @@ export default function FundTransfer({ onBackToMenu }: FundTransferProps) {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this fund transfer record?")) {
-      const updated = transfers.filter((t) => t.id !== id);
-      saveToLocalStorage(updated);
-    }
+    setDeleteConfirmId(id);
   };
 
   return (
-    <div className="card" style={{ maxWidth: "100%", width: "100%" }}>
+    <div className="card" style={{ maxWidth: "100%", width: "100%", position: "relative" }}>
+      {toast && (
+        <div style={{
+          position: "fixed",
+          top: "24px",
+          right: "24px",
+          backgroundColor: toast.type === "success" ? "#10B981" : "#EF4444",
+          color: "#FFFFFF",
+          padding: "14px 24px",
+          borderRadius: "8px",
+          boxShadow: "0 10px 25px -5px rgba(0,0,0,0.2)",
+          zIndex: 9999,
+          fontWeight: 600,
+          fontSize: "14px",
+          display: "flex",
+          alignItems: "center",
+          gap: "10px"
+        }}>
+          <span style={{ fontSize: "16px" }}>{toast.type === "success" ? "✓" : "✕"}</span>
+          <span>{toast.message}</span>
+        </div>
+      )}
+
+      {/* Custom Delete Confirmation Modal Popup */}
+      {deleteConfirmId && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 10000,
+        }}>
+          <div style={{
+            backgroundColor: "#FFFFFF",
+            borderRadius: "12px",
+            padding: "28px",
+            maxWidth: "420px",
+            width: "90%",
+            boxShadow: "0 20px 25px -5px rgba(0,0,0,0.2)",
+            textAlign: "center"
+          }}>
+            <div style={{
+              width: "52px",
+              height: "52px",
+              borderRadius: "50%",
+              backgroundColor: "#FEE2E2",
+              color: "#DC2626",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "24px",
+              margin: "0 auto 16px auto"
+            }}>
+              🗑️
+            </div>
+            <h3 style={{ fontSize: "19px", fontWeight: 700, color: "#1E293B", marginBottom: "8px" }}>
+              Do you want to delete this record?
+            </h3>
+            <p style={{ fontSize: "14px", color: "#64748B", marginBottom: "24px" }}>
+              This record will be permanently deleted. Are you sure?
+            </p>
+            <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
+              <button
+                onClick={() => setDeleteConfirmId(null)}
+                style={{
+                  padding: "10px 22px",
+                  borderRadius: "6px",
+                  border: "1px solid #CBD5E1",
+                  backgroundColor: "#FFFFFF",
+                  color: "#475569",
+                  fontWeight: 600,
+                  fontSize: "14px",
+                  cursor: "pointer"
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  const id = deleteConfirmId;
+                  setDeleteConfirmId(null);
+                  await deleteTransfer(id);
+                  showToast("Fund Transfer record deleted successfully!", "success");
+                }}
+                style={{
+                  padding: "10px 22px",
+                  borderRadius: "6px",
+                  border: "none",
+                  backgroundColor: "#EF4444",
+                  color: "#FFFFFF",
+                  fontWeight: 600,
+                  fontSize: "14px",
+                  cursor: "pointer"
+                }}
+              >
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* 1. LIST VIEW */}
       {view === "list" && (
         <>
@@ -672,11 +784,16 @@ export default function FundTransfer({ onBackToMenu }: FundTransferProps) {
                   disabled={loadingOrgs}
                 >
                   <option value="">-- Select Office --</option>
-                  {organizations.map((org) => (
-                    <option key={org.OrgID} value={org.OrgID.toString()}>
-                      {org.OrganizationName}
-                    </option>
-                  ))}
+                  {organizations.map((org, idx) => {
+                    const orgObj = org as any;
+                    const orgId = String(orgObj?.OrgID ?? orgObj?.orgID ?? orgObj?.id ?? idx);
+                    const orgName = String(orgObj?.OrganizationName ?? orgObj?.organizationName ?? orgObj?.name ?? `Office #${orgId}`);
+                    return (
+                      <option key={orgId} value={orgId}>
+                        {orgName}
+                      </option>
+                    );
+                  })}
                 </select>
                 {errors.receiverOfficeId && <p className="error-message">{errors.receiverOfficeId}</p>}
                 {loadingOrgs && <p style={{ fontSize: "11px", color: "var(--text-secondary)" }}>Loading offices...</p>}

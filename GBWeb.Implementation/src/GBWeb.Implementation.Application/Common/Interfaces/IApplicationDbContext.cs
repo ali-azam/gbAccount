@@ -1,4 +1,4 @@
-﻿using GBWeb.Implementation.Domain.Common.Entities;
+using GBWeb.Implementation.Domain.Common.Entities;
 using GBWeb.Implementation.Domain.Modules.Organization.Entities;
 using GBWeb.Implementation.Domain.Modules.Account.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -18,8 +18,10 @@ public interface IApplicationDbContext
     DbSet<GbAccount> GbAccounts { get; }
     DbSet<Budget> Budgets { get; }
     DbSet<BudgetParticular> BudgetParticulars { get; }
+    DbSet<PKSFFundLoan> PKSFFundLoans { get; }
+    DbSet<AccMappingForFundTransfer> AccMappingForFundTransfers { get; }
+    DbSet<TargetAchievement> TargetAchievements { get; }
+    DbSet<YearlyTargetData> YearlyTargetDatas { get; }
     DbSet<OlrsTrialBalance> OlrsTrialBalances { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
-
 }
-
