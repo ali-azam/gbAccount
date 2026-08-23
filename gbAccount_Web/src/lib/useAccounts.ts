@@ -40,10 +40,14 @@ const dash = (value: string | null) => (value && value.trim() !== "" ? value : "
  * Code columns are resolved to labels here so the list and the edit modal both
  * see display text rather than raw integers.
  */
-function toAccountData(row: any, index: number): AccountData {
+function toAccountData(row: any, index: number, notesList: any[]): AccountData {
+  const noteId = row.noteID ?? row.NoteID;
+  const foundNote = notesList.find((n: any) => Number(n.id) === noteId);
+  const noteName = foundNote ? foundNote.noteName : "-";
+
   return {
     id: String(row.accID ?? row.AccID),
-    sl: index + 1,
+    sl: Number(row.accID ?? row.AccID ?? (index + 1)),
     parentCode: dash(row.firstLevel ?? row.FirstLevel),
     newCode: row.accCode ?? row.AccCode,
     accountHead: row.accName ?? row.AccName ?? "",
@@ -58,7 +62,7 @@ function toAccountData(row: any, index: number): AccountData {
     module: moduleLabel(row.moduleID ?? row.ModuleID),
     officeLevel: officeLevelLabel(row.officeLevel ?? row.OfficeLevel),
     category: row.accCategory?.categoryName ?? row.AccCategory?.CategoryName ?? "-",
-    note: noteLabel(row.noteID ?? row.NoteID),
+    note: noteName,
     createdAt: (row.createDate ?? row.CreateDate)
       ? new Date(row.createDate ?? row.CreateDate).toLocaleDateString()
       : "-",
@@ -79,7 +83,7 @@ interface UseAccountsResult {
  * Maps an AccountData (frontend shape with label strings) back to the
  * AccChart entity shape the backend expects (numeric IDs).
  */
-function toAccChartPayload(account: AccountData) {
+function toAccChartPayload(account: AccountData, notesList: any[]) {
   const NATURE_REVERSE: Record<string, string> = {
     Debit: "1",
     Credit: "2",
@@ -93,6 +97,8 @@ function toAccChartPayload(account: AccountData) {
     Income: 4,
   };
 
+  const foundNote = notesList.find((n: any) => n.noteName === account.note);
+
   return {
     AccCode: account.newCode,
     AccName: account.accountHead,
@@ -102,7 +108,7 @@ function toAccChartPayload(account: AccountData) {
     IsTransaction: account.isTransaction ?? false,
     Nature: NATURE_REVERSE[account.nature] ?? null,
     ModuleID: moduleByName(account.module)?.id ?? null,
-    NoteID: noteByName(account.note)?.id ?? null,
+    NoteID: foundNote ? Number(foundNote.id) : null,
     OrgID: 1,
     IsActive: true,
     CreateUser: "suser_sname()",
@@ -118,6 +124,7 @@ function toAccChartPayload(account: AccountData) {
  */
 export function useAccounts(): UseAccountsResult {
   const [accounts, setAccounts] = useState<AccountData[]>([]);
+  const [notes, setNotes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
@@ -133,10 +140,16 @@ export function useAccounts(): UseAccountsResult {
         const res = await fetch("http://localhost:5201/api/AccCharts");
         const json = await res.json();
 
+        const notesRes = await fetch("http://localhost:5201/api/AccNotes");
+        const notesJson = await notesRes.json();
+
         if (cancelled) return;
 
         if (json.success && Array.isArray(json.data)) {
-          setAccounts((json.data as AccChartRow[]).map(toAccountData));
+          const notesList = (notesJson.success && Array.isArray(notesJson.data)) ? notesJson.data : [];
+          setNotes(notesList);
+
+          setAccounts((json.data as AccChartRow[]).map((row, idx) => toAccountData(row, idx, notesList)));
           setError(null);
         } else {
           setError(json.message ?? "Failed to load accounts");
@@ -163,7 +176,7 @@ export function useAccounts(): UseAccountsResult {
       // Anything else (random string from the form, "0", empty) = new record → POST.
       const accId = parseInt(account.id, 10);
       const isEdit = !isNaN(accId) && accId > 0;
-      const payload = toAccChartPayload(account);
+      const payload = toAccChartPayload(account, notes);
 
       let res: Response;
       if (isEdit) {

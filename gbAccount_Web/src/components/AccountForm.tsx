@@ -7,10 +7,10 @@ import {
   DEFAULT_MODULE,
   OFFICE_LEVELS,
   DEFAULT_OFFICE_LEVEL,
-  ACCOUNT_NOTES,
   NOTE_PLACEHOLDER,
 } from "@/lib/lookups";
 import { useCategories } from "@/lib/useCategories";
+import { useAccountNotes } from "@/lib/useAccountNotes";
 
 export interface AccountData {
   id: string;
@@ -45,6 +45,12 @@ export default function AccountForm({ onSaveAccount, onBackToList, initialData }
     loading: categoriesLoading,
     error: categoriesError,
   } = useCategories();
+
+  const {
+    accountNotes,
+    loading: notesLoading,
+    error: notesError,
+  } = useAccountNotes();
 
   const [formData, setFormData] = useState({
     parentCode: "",
@@ -368,10 +374,12 @@ export default function AccountForm({ onSaveAccount, onBackToList, initialData }
               onChange={handleChange}
               className="form-select"
             >
-              <option value={NOTE_PLACEHOLDER}>{NOTE_PLACEHOLDER}</option>
-              {ACCOUNT_NOTES.map((note) => (
-                <option key={note.id} value={note.name}>
-                  {note.name}
+              <option value={NOTE_PLACEHOLDER}>
+                {notesLoading ? "Loading..." : NOTE_PLACEHOLDER}
+              </option>
+              {accountNotes.map((note) => (
+                <option key={note.id} value={note.noteName}>
+                  {note.noteName}
                 </option>
               ))}
             </select>

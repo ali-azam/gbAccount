@@ -1,4 +1,4 @@
-﻿using GBWeb.Implementation.Infrastructure.Persistence;
+using GBWeb.Implementation.Infrastructure.Persistence;
 using GBWeb.Implementation.Domain.Modules.Account.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +11,9 @@ namespace GBWeb.Implementation.Api.Controllers
 {
     [AllowAnonymous]
     [Tags("Budget Particulars")]
-    public class BudgetParticularsController : ApiControllerBase
+    [Route("api/[controller]")]
+    [ApiController]
+    public class BudgetParticularsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
 
@@ -26,13 +28,13 @@ namespace GBWeb.Implementation.Api.Controllers
             public string ParticularName { get; set; } = string.Empty;
         }
 
-        // GET: api/BudgetParticulars
+        // GET: api/BudgetParticulars (OrderByDescending so newest saves appear on Row #1)
         [HttpGet]
         public async Task<IActionResult> GetBudgetParticulars()
         {
             var results = await _context.BudgetParticulars
                 .Where(x => x.IsActive == true)
-                .OrderBy(x => x.BudgetParticularName)
+                .OrderByDescending(x => x.BudgetParticularId)
                 .ToListAsync();
 
             var dtos = results.Select(x => new BudgetParticularDto
@@ -65,14 +67,13 @@ namespace GBWeb.Implementation.Api.Controllers
 
         // POST: api/BudgetParticulars
         [HttpPost]
-        public async Task<IActionResult> PostBudgetParticular(BudgetParticularDto dto)
+        public async Task<IActionResult> PostBudgetParticular([FromBody] BudgetParticularDto dto)
         {
             if (dto == null || string.IsNullOrWhiteSpace(dto.ParticularName))
             {
                 return BadRequest(new { success = false, message = "Particular name is required" });
             }
 
-            // Generate sequential code (e.g. max + 1)
             string code = "0001";
             var maxCode = await _context.BudgetParticulars
                 .OrderByDescending(x => x.BudgetParticularCode)
@@ -88,7 +89,7 @@ namespace GBWeb.Implementation.Api.Controllers
             {
                 BudgetParticularCode = code,
                 BudgetParticularName = dto.ParticularName.Trim(),
-                GroupId = 4, // Default Group ID
+                GroupId = 4,
                 IsActive = true,
                 CreateUser = "system",
                 CreateDate = DateTime.Now
@@ -104,7 +105,7 @@ namespace GBWeb.Implementation.Api.Controllers
 
         // PUT: api/BudgetParticulars/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutBudgetParticular(long id, BudgetParticularDto dto)
+        public async Task<IActionResult> PutBudgetParticular(long id, [FromBody] BudgetParticularDto dto)
         {
             if (dto == null || string.IsNullOrWhiteSpace(dto.ParticularName))
             {

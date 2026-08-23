@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using GBWeb.Implementation.Application.Common.Interfaces;
 using GBWeb.Implementation.Domain.Common.Entities;
 using GBWeb.Implementation.Domain.Common.Interfaces;
@@ -26,6 +26,11 @@ public sealed class ApplicationDbContext(
     public DbSet<AccTrxDetail> AccTrxDetails => Set<AccTrxDetail>();
     public DbSet<Budget> Budgets => Set<Budget>();
     public DbSet<BudgetParticular> BudgetParticulars => Set<BudgetParticular>();
+    public DbSet<AccNote> AccNotes => Set<AccNote>();
+    public DbSet<PKSFFundLoan> PKSFFundLoans => Set<PKSFFundLoan>();
+    public DbSet<AccMappingForFundTransfer> AccMappingForFundTransfers => Set<AccMappingForFundTransfer>();
+    public DbSet<TargetAchievement> TargetAchievements => Set<TargetAchievement>();
+    public DbSet<YearlyTargetData> YearlyTargetDatas => Set<YearlyTargetData>();
 
     public DbSet<ApprovalRequest> ApprovalRequests =>
         Set<ApprovalRequest>();
@@ -311,6 +316,46 @@ public sealed class ApplicationDbContext(
             entity.Property(x => x.CreateUser).HasMaxLength(35).IsUnicode(false).IsRequired();
             entity.Property(x => x.CreateDate).HasColumnType("smalldatetime").IsRequired();
             entity.Property(x => x.InActiveDate).HasColumnType("smalldatetime");
+        });
+
+        builder.Entity<AccNote>(entity =>
+        {
+            entity.ToTable("AccNote", "dbo");
+            entity.HasKey(x => x.NoteID);
+            entity.Property(x => x.NoteID).ValueGeneratedOnAdd();
+            entity.Property(x => x.NoteNo).IsRequired();
+            entity.Property(x => x.NoteName).HasMaxLength(150);
+            entity.Property(x => x.CreateUser).HasMaxLength(35).IsUnicode(false).IsRequired();
+            entity.Property(x => x.CreateDate).HasColumnType("smalldatetime").IsRequired();
+            entity.Property(x => x.InActiveDate).HasColumnType("smalldatetime");
+        });
+
+        builder.Entity<PKSFFundLoan>(entity =>
+        {
+            entity.ToTable("PKSFFundLoan", "dbo");
+            entity.HasKey(x => x.FundLoanID);
+            entity.Property(x => x.FundLoanID).ValueGeneratedOnAdd();
+        });
+
+        builder.Entity<AccMappingForFundTransfer>(entity =>
+        {
+            entity.ToTable("AccMappingForFundTransfer", "dbo");
+            entity.HasKey(x => x.ID);
+            entity.Property(x => x.ID).ValueGeneratedOnAdd();
+        });
+
+        builder.Entity<TargetAchievement>(entity =>
+        {
+            entity.ToTable("targetachievement", "dbo");
+            entity.HasKey(x => x.TargetId);
+            entity.Property(x => x.TargetId).ValueGeneratedOnAdd();
+        });
+
+        builder.Entity<YearlyTargetData>(entity =>
+        {
+            entity.ToTable("Yearly_Target_Data", "dbo");
+            entity.HasKey(x => x.ID);
+            entity.Property(x => x.ID).ValueGeneratedOnAdd();
         });
     }
 }

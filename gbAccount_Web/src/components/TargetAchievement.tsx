@@ -9,8 +9,11 @@ export interface TargetAchievementData {
   particularName: string;
   targetCurrentYear: string;
   target: string;
+  achievement?: string;
+  balance?: string;
   date: string;
   productName: string;
+  officeId?: string;
 }
 
 interface TargetAchievementProps {
@@ -39,6 +42,7 @@ export default function TargetAchievement({
   });
 
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const yearPickerRef = useRef<HTMLInputElement>(null);
@@ -71,7 +75,7 @@ export default function TargetAchievement({
     }
   };
 
-  const [sortField, setSortField] = useState<SortField>("particularName");
+  const [sortField, setSortField] = useState<SortField | "">("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(1);
   const [rowCount, setRowCount] = useState(10);
@@ -97,24 +101,33 @@ export default function TargetAchievement({
     }
   };
 
-  const sortedTargets = [...targets].sort((a, b) => {
-    let aVal = (a[sortField] || "").toString().toLowerCase();
-    let bVal = (b[sortField] || "").toString().toLowerCase();
-    
-    // Sort numeric values properly if sorting Target or TargetCurrentYear
-    if (sortField === "target" || sortField === "targetCurrentYear") {
-      const aNum = parseFloat(aVal) || 0;
-      const bNum = parseFloat(bVal) || 0;
-      return sortDirection === "asc" ? aNum - bNum : bNum - aNum;
-    }
+  const sortedTargets = !sortField
+    ? [...targets]
+    : [...targets].sort((a, b) => {
+        let aVal = (a[sortField] || "").toString().toLowerCase();
+        let bVal = (b[sortField] || "").toString().toLowerCase();
+        
+        // Sort numeric values properly if sorting Target or TargetCurrentYear
+        if (sortField === "target" || sortField === "targetCurrentYear") {
+          const aNum = parseFloat(aVal) || 0;
+          const bNum = parseFloat(bVal) || 0;
+          return sortDirection === "asc" ? aNum - bNum : bNum - aNum;
+        }
 
-    if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
-    if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
-    return 0;
-  });
+        if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
+        if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
+        return 0;
+      });
 
   const totalPages = Math.max(1, Math.ceil(sortedTargets.length / rowCount));
   const paginatedTargets = sortedTargets.slice((page - 1) * rowCount, page * rowCount);
+
+  // Toast Notification State
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const showToast = (message: string, type: "success" | "error" = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3500);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -149,11 +162,15 @@ export default function TargetAchievement({
 
     if (editingId) {
       onUpdateTarget(payload);
+      showToast("Target Achievement updated successfully!", "success");
       setEditingId(null);
     } else {
       onSaveTarget(payload);
+      showToast("Target Achievement created successfully!", "success");
     }
 
+    setPage(1);
+    setSortField("");
     setFormData({
       particularName: "Please Select",
       targetCurrentYear: "",
@@ -177,23 +194,127 @@ export default function TargetAchievement({
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this target achievement?")) {
-      onDeleteTarget(id);
-      if (editingId === id) {
-        setEditingId(null);
-        setFormData({
-          particularName: "Please Select",
-          targetCurrentYear: "",
-          target: "",
-          date: "",
-          productName: "",
-        });
-      }
-    }
+    setDeleteConfirmId(id);
   };
 
   return (
     <div className="card" style={{ maxWidth: "100%", position: "relative" }}>
+      {toast && (
+        <div style={{
+          position: "fixed",
+          top: "24px",
+          right: "24px",
+          backgroundColor: toast.type === "success" ? "#10B981" : "#EF4444",
+          color: "#FFFFFF",
+          padding: "14px 24px",
+          borderRadius: "8px",
+          boxShadow: "0 10px 25px -5px rgba(0,0,0,0.2)",
+          zIndex: 9999,
+          fontWeight: 600,
+          fontSize: "14px",
+          display: "flex",
+          alignItems: "center",
+          gap: "10px"
+        }}>
+          <span style={{ fontSize: "16px" }}>{toast.type === "success" ? "✓" : "✕"}</span>
+          <span>{toast.message}</span>
+        </div>
+      )}
+
+      {/* Custom Delete Confirmation Modal Popup */}
+      {deleteConfirmId && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 10000,
+        }}>
+          <div style={{
+            backgroundColor: "#FFFFFF",
+            borderRadius: "12px",
+            padding: "28px",
+            maxWidth: "420px",
+            width: "90%",
+            boxShadow: "0 20px 25px -5px rgba(0,0,0,0.2)",
+            textAlign: "center"
+          }}>
+            <div style={{
+              width: "52px",
+              height: "52px",
+              borderRadius: "50%",
+              backgroundColor: "#FEE2E2",
+              color: "#DC2626",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "24px",
+              margin: "0 auto 16px auto"
+            }}>
+              🗑️
+            </div>
+            <h3 style={{ fontSize: "19px", fontWeight: 700, color: "#1E293B", marginBottom: "8px" }}>
+              Do you want to delete this record?
+            </h3>
+            <p style={{ fontSize: "14px", color: "#64748B", marginBottom: "24px" }}>
+              This record will be permanently deleted. Are you sure?
+            </p>
+            <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
+              <button
+                onClick={() => setDeleteConfirmId(null)}
+                style={{
+                  padding: "10px 22px",
+                  borderRadius: "6px",
+                  border: "1px solid #CBD5E1",
+                  backgroundColor: "#FFFFFF",
+                  color: "#475569",
+                  fontWeight: 600,
+                  fontSize: "14px",
+                  cursor: "pointer"
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  const id = deleteConfirmId;
+                  setDeleteConfirmId(null);
+                  onDeleteTarget(id);
+                  showToast("Target Achievement entry deleted successfully!", "success");
+                  if (editingId === id) {
+                    setEditingId(null);
+                    setFormData({
+                      particularName: "Please Select",
+                      targetCurrentYear: "",
+                      target: "",
+                      date: "",
+                      productName: "",
+                    });
+                  }
+                }}
+                style={{
+                  padding: "10px 22px",
+                  borderRadius: "6px",
+                  border: "none",
+                  backgroundColor: "#EF4444",
+                  color: "#FFFFFF",
+                  fontWeight: 600,
+                  fontSize: "14px",
+                  cursor: "pointer"
+                }}
+              >
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: "24px" }}>
         <h2 className="page-title" style={{ fontSize: "20px", borderBottom: "1px solid #e2e8f0", paddingBottom: "8px" }}>
           Target Achievement
