@@ -27,6 +27,9 @@ public sealed class ApplicationDbContext(
     public DbSet<Budget> Budgets => Set<Budget>();
     public DbSet<BudgetParticular> BudgetParticulars => Set<BudgetParticular>();
 
+    public DbSet<OlrsTrialBalance> OlrsTrialBalances =>
+        Set<OlrsTrialBalance>();
+
     public DbSet<ApprovalRequest> ApprovalRequests =>
         Set<ApprovalRequest>();
 

@@ -18,6 +18,7 @@ public interface IApplicationDbContext
     DbSet<GbAccount> GbAccounts { get; }
     DbSet<Budget> Budgets { get; }
     DbSet<BudgetParticular> BudgetParticulars { get; }
+    DbSet<OlrsTrialBalance> OlrsTrialBalances { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 
 }
