@@ -319,6 +319,36 @@ export default function Sidebar({ activeSubMenu, onSelectMenu }: SidebarProps) {
                   >
                     <span>Income Expenditure(Office)</span>
                     </button>
+                    {/*Balance Sheet*/}
+                    <button
+                    onClick={() => {
+                      onSelectMenu("report-balance-sheet");
+                      setMobileOpen(false);
+                    }}
+                    className={`sidebar-sub-btn ${activeSubMenu === "report-balance-sheet" ? "active" : ""}`}
+                  >
+                    <span>Balance Sheet</span>
+                    </button>
+                    {/*Balance Sheet by Office*/}
+                    <button
+                    onClick={() => {
+                      onSelectMenu("report-balance-sheet-office");
+                      setMobileOpen(false);
+                    }}
+                    className={`sidebar-sub-btn ${activeSubMenu === "report-balance-sheet-office" ? "active" : ""}`}
+                  >
+                    <span>Balance Sheet(Office)</span>
+                    </button>
+                    {/*Budget Report*/}
+                    <button
+                    onClick={() => {
+                      onSelectMenu("report-budget");
+                      setMobileOpen(false);
+                    }}
+                    className={`sidebar-sub-btn ${activeSubMenu === "report-budget" ? "active" : ""}`}
+                  >
+                    <span>Budget Report</span>
+                    </button>
                 </div>
               )}
               </div>

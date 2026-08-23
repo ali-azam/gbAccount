@@ -32,6 +32,9 @@ public sealed class ApplicationDbContext(
     public DbSet<TargetAchievement> TargetAchievements => Set<TargetAchievement>();
     public DbSet<YearlyTargetData> YearlyTargetDatas => Set<YearlyTargetData>();
 
+    public DbSet<OlrsTrialBalance> OlrsTrialBalances =>
+        Set<OlrsTrialBalance>();
+
     public DbSet<ApprovalRequest> ApprovalRequests =>
         Set<ApprovalRequest>();
 

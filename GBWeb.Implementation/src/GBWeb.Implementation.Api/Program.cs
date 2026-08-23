@@ -48,7 +48,11 @@ builder.Services.AddCors(options =>
         policy
             .WithOrigins("http://localhost:3000")
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            // Report downloads take their file name from this header,
+            // which a cross-origin caller cannot read unless it is
+            // explicitly exposed.
+            .WithExposedHeaders("Content-Disposition");
     });
 });
 

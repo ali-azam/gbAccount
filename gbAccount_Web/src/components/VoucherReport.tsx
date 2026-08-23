@@ -78,6 +78,93 @@ const toApiDate = (displayDate: string) => {
 const today = () =>
   formatDateString(new Date().toISOString().split("T")[0]);
 
+/*
+ * Voucher type code -> display name.
+ *
+ * Mirrors GetVoucherTypeName in
+ * GBWeb.Implementation.Infrastructure/Services/VoucherReportPdfService.cs
+ * so the dropdown and the generated PDF use the same wording.
+ */
+const VOUCHER_TYPE_NAMES: Record<string, string> = {
+  CA: "Cash Credit/Receipt Voucher",
+  CAD: "Cash Debit/Payment Voucher",
+  CAC: "Cash Credit/Receipt Voucher",
+  BA: "Bank Transaction Voucher",
+  BDR: "Bank Debit/Payment Voucher",
+  BCR: "Bank Credit/Receipt Voucher",
+  BC: "Bank (Cash) Voucher",
+  JR: "Journal Voucher",
+};
+
+/*
+ * Abbreviations expanded for any code that is not in the
+ * map above. Voucher types come straight out of
+ * AccTrxMaster.VoucherType, so the list is whatever the
+ * data holds — not just the eight names the PDF knows.
+ *
+ * Ordered longest first so CSH is matched before CS or C,
+ * and so DR / CR pick up the tail of a composite code.
+ */
+const VOUCHER_TYPE_TOKENS: ReadonlyArray<
+  readonly [string, string]
+> = [
+  ["CSH", "Cash In Hand"],
+  ["BNK", "Bank"],
+  ["JRN", "Journal"],
+  ["JR", "Journal"],
+  ["BA", "Bank"],
+  ["CA", "Cash"],
+  ["CR", "Credit"],
+  ["DR", "Debit"],
+];
+
+/*
+ * Expand a code by consuming known abbreviations from the
+ * left, e.g. CSHCR -> "Cash In Hand Credit". Returns null
+ * when any part of the code is unrecognised, so the caller
+ * can fall back to showing the code itself rather than a
+ * half translated label.
+ */
+const expandVoucherTypeCode = (code: string) => {
+  const words: string[] = [];
+
+  let rest = code;
+
+  while (rest.length > 0) {
+    const token = VOUCHER_TYPE_TOKENS.find(
+      ([abbreviation]) =>
+        rest.startsWith(abbreviation)
+    );
+
+    if (!token) {
+      return null;
+    }
+
+    words.push(token[1]);
+
+    rest = rest.slice(token[0].length);
+  }
+
+  return words.length > 0
+    ? words.join(" ")
+    : null;
+};
+
+/*
+ * Full form only — no codes. Note that CA and CAC share a
+ * name in the backend mapping, so those two options read
+ * identically in the dropdown.
+ */
+const getVoucherTypeLabel = (code: string) => {
+  const normalized = code.trim().toUpperCase();
+
+  return (
+    VOUCHER_TYPE_NAMES[normalized] ??
+    expandVoucherTypeCode(normalized) ??
+    code
+  );
+};
+
 export default function VoucherReport() {
   const [trxDate, setTrxDate] = useState(today);
   const [trxDateTo, setTrxDateTo] = useState(today);
@@ -570,7 +657,7 @@ export default function VoucherReport() {
                   key={type}
                   value={type}
                 >
-                  {type}
+                  {getVoucherTypeLabel(type)}
                 </option>
               ))}
             </select>

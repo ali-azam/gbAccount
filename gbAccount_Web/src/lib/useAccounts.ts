@@ -12,7 +12,7 @@ import {
   noteByName,
 } from "./lookups";
 
-/** Shape of an AccChart row as returned by /api/accounts. */
+/** Shape of an AccChart row as returned by /api/AccCharts. */
 interface AccChartRow {
   AccID: number;
   AccCode: string;
@@ -34,6 +34,8 @@ interface AccChartRow {
 }
 
 const dash = (value: string | null) => (value && value.trim() !== "" ? value : "-");
+
+const API_BASE_URL = "https://localhost:7201";
 
 /**
  * Maps a database row onto the AccountData shape the UI components already use.
@@ -117,7 +119,7 @@ function toAccChartPayload(account: AccountData, notesList: any[]) {
 }
 
 /**
- * Loads the chart of accounts from /api/accounts.
+ * Loads the chart of accounts from the API's /api/AccCharts endpoint.
  *
  * setAccounts is exposed so the existing create/edit/delete handlers keep
  * working against local state until those paths are wired to the API.
@@ -137,7 +139,14 @@ export function useAccounts(): UseAccountsResult {
 
     async function load() {
       try {
-        const res = await fetch("http://localhost:5201/api/AccCharts");
+        const res = await fetch(`${API_BASE_URL}/api/AccCharts`);
+
+        // A wrong path returns an HTML error page, and res.json() would
+        // then fail with a parse error that hides the real cause.
+        if (!res.ok) {
+          throw new Error(`Failed to load accounts. HTTP ${res.status}`);
+        }
+
         const json = await res.json();
 
         const notesRes = await fetch("http://localhost:5201/api/AccNotes");

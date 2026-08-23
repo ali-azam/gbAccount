@@ -22,5 +22,6 @@ public interface IApplicationDbContext
     DbSet<AccMappingForFundTransfer> AccMappingForFundTransfers { get; }
     DbSet<TargetAchievement> TargetAchievements { get; }
     DbSet<YearlyTargetData> YearlyTargetDatas { get; }
+    DbSet<OlrsTrialBalance> OlrsTrialBalances { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

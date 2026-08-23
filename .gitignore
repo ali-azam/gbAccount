@@ -1,3 +1,6 @@
 # Next.js
 gbAccount_Web/node_modules/
 gbAccount_Web/.next/
+
+# Claude Code
+.claude/

@@ -26,6 +26,9 @@ import ReceivePaymentReport from "@/components/ReceivePaymentReport";
 import ReceivePaymentReportByOffice from "@/components/ReceivePaymentReportOffice";
 import IncomeExpenditureReport from "@/components/IncomeExpReport";
 import IncomeExpenditureReportByOffice from "@/components/IncomeExpReportOffice";
+import BalanceSheetReport from "@/components/BalanceSheetReport";
+import BalanceSheetReportOffice from "@/components/BalanceSheetReportOffice";
+import BudgetReport from "@/components/BudgetReport";
 import { useAccounts } from "@/lib/useAccounts";
 import { useVouchers } from "@/lib/useVouchers";
 import { useBudgets } from "@/lib/useBudgets";
@@ -49,6 +52,9 @@ const REPORT_TITLES: Record<string, string> = {
    "report-receive-payment-office": "Receive Payment Report office",
    "report-income-expenditure": "Income Expenditure Report",
    "report-income-expenditure-office": "Income Expenditure Report office",
+   "report-balance-sheet": "Balance Sheet",
+   "report-balance-sheet-office": "Balance Sheet",
+   "report-budget": "Budget Report",
 };
 
 // Breadcrumb middle segment per report page
@@ -64,6 +70,15 @@ const REPORT_CRUMBS: Record<string, string> = {
   "report-receive-payment-office": "AccRcvPayReportoffice",
   "report-income-expenditure": "AccIncExpReport",
   "report-income-expenditure-office": "AccIncExpReportoffice",
+  "report-balance-sheet": "AccBalanceSheet",
+  "report-balance-sheet-office": "AccBalanceSheet",
+  "report-budget": "Budget",
+};
+
+// Breadcrumb last segment per report page — defaults to "Index"
+const REPORT_LAST_CRUMBS: Record<string, string> = {
+  "report-balance-sheet-office": "IndexbyOffice",
+  "report-budget": "BudgetReport",
 };
 
 export default function Home() {
@@ -200,7 +215,9 @@ export default function Home() {
                     {REPORT_CRUMBS[activeSubMenu]}
                   </span>
                   <span className="breadcrumb-item">/</span>
-                  <span className="breadcrumb-item current">Index</span>
+                  <span className="breadcrumb-item current">
+                    {REPORT_LAST_CRUMBS[activeSubMenu] ?? "Index"}
+                  </span>
                 </>
               ) : activeSubMenu === "reconcile-entries" ? (
                 <>
@@ -337,6 +354,12 @@ export default function Home() {
                 <IncomeExpenditureReport />
               ) : activeSubMenu === "report-income-expenditure-office" ? (
                 <IncomeExpenditureReportByOffice />
+              ) : activeSubMenu === "report-balance-sheet" ? (
+                <BalanceSheetReport />
+              ) : activeSubMenu === "report-balance-sheet-office" ? (
+                <BalanceSheetReportOffice />
+              ) : activeSubMenu === "report-budget" ? (
+                <BudgetReport />
               ) : (
                 <CashBookReport />
               )}

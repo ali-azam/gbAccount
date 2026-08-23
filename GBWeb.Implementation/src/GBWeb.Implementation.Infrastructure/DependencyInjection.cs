@@ -1,4 +1,5 @@
 using GBWeb.Implementation.Application.Common.Interfaces;
+using GBWeb.Implementation.Application.Common.Options;
 using GBWeb.Implementation.Infrastructure.Identity;
 using GBWeb.Implementation.Infrastructure.Persistence;
 using GBWeb.Implementation.Infrastructure.Services;
@@ -19,6 +20,21 @@ public static class DependencyInjection
         services.AddScoped<
     IVoucherReportPdfService,
     VoucherReportPdfService>();
+
+        services.AddScoped<
+            ITrialBalanceReportPdfService,
+            TrialBalanceReportPdfService>();
+
+        services.AddScoped<
+            ITrialBalanceReportExcelService,
+            TrialBalanceReportExcelService>();
+
+        // Printed reports are headed by an organisation name that no data
+        // column identifies, so ValidateOnStart catches a missing or zero
+        // OrganizationId at boot rather than at the first report request.
+        services.AddOptions<ReportOptions>().Bind(configuration.GetSection(ReportOptions.SectionName))
+            .Validate(x => x.OrganizationId > 0, "Reports:OrganizationId is required.")
+            .ValidateOnStart();
 
         var databaseOptions = configuration.GetSection(DatabaseOptions.SectionName).Get<DatabaseOptions>() ?? new();
         var connectionString = configuration.GetConnectionString("DefaultConnection")
