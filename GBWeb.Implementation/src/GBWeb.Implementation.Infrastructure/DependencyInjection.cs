@@ -29,6 +29,22 @@ public static class DependencyInjection
             ITrialBalanceReportExcelService,
             TrialBalanceReportExcelService>();
 
+        services.AddScoped<
+            IGeneralLedgerReportPdfService,
+            GeneralLedgerReportPdfService>();
+
+        services.AddScoped<
+            IGeneralLedgerReportExcelService,
+            GeneralLedgerReportExcelService>();
+
+        services.AddScoped<
+            ICashBookReportPdfService,
+            CashBookReportPdfService>();
+
+        services.AddScoped<
+            ICashBookReportExcelService,
+            CashBookReportExcelService>();
+
         // Printed reports are headed by an organisation name that no data
         // column identifies, so ValidateOnStart catches a missing or zero
         // OrganizationId at boot rather than at the first report request.
