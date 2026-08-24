@@ -1,165 +1,226 @@
 "use client";
 
-import React, { useState } from "react";
+/**
+ * Reports ▸ Office Trial Balance — the legacy AccTrialBalance/IndexByOffice
+ * screen.
+ *
+ * The same accounts as Trial Balance, but broken out into a block per
+ * office rather than consolidated, so a zone's branches can be compared
+ * against one another in a single report.
+ *
+ * The form is deliberately the four fields the legacy screen has — one
+ * office, a date range and an account level. Trial Balance is the screen
+ * that filters down the office hierarchy and carries the Except and
+ * Report View options; this one names its office outright. The table, the
+ * column arithmetic and the fetching are shared with it.
+ */
 
-interface Office {
-  id: string;
-  name: string;
-}
+import React, { useMemo, useState } from "react";
 
-const OFFICES: Office[] = [
-  {
-    id: "0001",
-    name: "0001 GRAM",
-  },
-  {
-    id: "0002",
-    name: "0002 SHIBCHAR",
-  },
-  {
-    id: "0003",
-    name: "0003 MADARIPUR",
-  },
-];
+import DateField from "./DateField";
+import TrialBalanceTable from "./TrialBalanceTable";
+import { today } from "@/lib/reportDates";
+import { officeLabel, useOffices } from "@/lib/useOffices";
+import {
+  REPORT_TYPES,
+  apiFormat,
+  formatAmount,
+  formatLabel,
+} from "@/lib/trialBalanceExport";
+import {
+  appendDateRange,
+  useTrialBalanceReport,
+} from "@/lib/useTrialBalanceReport";
 
-const ACCOUNT_LEVELS = ["1", "2", "3", "4", "5"];
+/** Matches the heading the PDF and Excel exports print. */
+const REPORT_TITLE = "Account Head-wise Trial Balance";
 
-const REPORT_VIEWS = [
-  {
-    value: "detail",
-    label: "Detail",
-  },
-  {
-    value: "summary",
-    label: "Summary",
-  },
-];
+const ACC_LEVELS = ["1", "2", "3", "4", "5"];
 
 export default function TrialBalanceReportOffice() {
-  const [office, setOffice] = useState("0001");
+  const {
+    offices,
+    loading: officesLoading,
+    error: officesError,
+  } = useOffices();
 
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
+  const [officeId, setOfficeId] = useState("");
+  const [dateFrom, setDateFrom] = useState(today);
+  const [dateTo, setDateTo] = useState(today);
+  const [accLevel, setAccLevel] = useState("3");
+  const [reportType, setReportType] = useState("pdf");
 
-  const [accLevel, setAccLevel] = useState("5");
+  const {
+    report,
+    heading,
+    sections,
+    loading,
+    generating,
+    busy,
+    error,
+    setError,
+    view,
+    exportFile,
+  } = useTrialBalanceReport("office");
 
-  const [exceptHeadOffice, setExceptHeadOffice] = useState(false);
-  const [exceptProjectOffice, setExceptProjectOffice] = useState(false);
+  /**
+   * One flat list, the way the legacy screen shows it. Sorting by level
+   * puts the head office first — which reports the whole organisation, as
+   * the API includes everything beneath whichever office is named — then
+   * the zones, the areas and the branches.
+   */
+  const officeOptions = useMemo(
+    () =>
+      [...offices].sort(
+        (a, b) =>
+          a.officeLevel - b.officeLevel ||
+          a.officeCode.localeCompare(b.officeCode)
+      ),
+    [offices]
+  );
 
-  const [reportView, setReportView] = useState("");
+  const selectedOffice = useMemo(
+    () =>
+      officeOptions.find((office) => String(office.officeId) === officeId) ??
+      officeOptions[0] ??
+      null,
+    [officeOptions, officeId]
+  );
 
-  const [showResult, setShowResult] = useState(false);
+  /**
+   * The query string, or null when the form is not filled in well enough
+   * to send. The message goes on screen.
+   */
+  const buildParams = (): URLSearchParams | null => {
+    const params = new URLSearchParams();
+    const dateError = appendDateRange(params, dateFrom, dateTo);
 
-  const handleView = () => {
-    if (!office) {
-      alert("Please select Office");
-      return;
+    if (dateError) {
+      setError(dateError);
+      return null;
     }
 
-    if (!dateFrom) {
-      alert("Please select Date From");
-      return;
+    if (selectedOffice) {
+      params.append("OfficeId", String(selectedOffice.officeId));
     }
 
-    if (!dateTo) {
-      alert("Please select Date To");
-      return;
-    }
+    // Everything before Date From makes up the opening balance and
+    // everything within the range the movement, so Acc Level decides which
+    // account the postings are gathered under rather than filtering them.
+    params.append("AccLevel", accLevel);
 
-    if (dateFrom > dateTo) {
-      alert("Date From cannot be greater than Date To");
-      return;
-    }
+    // The legacy screen has no Report View, so it always lists the
+    // accounts themselves rather than rolling them up to their head.
+    params.append("DetailLevel", "Detail");
 
-    if (!reportView) {
-      alert("Please select Report View");
-      return;
-    }
-
-    setShowResult(true);
+    return params;
   };
 
+  const handleView = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    const params = buildParams();
+
+    if (!params) return;
+
+    view(params, {
+      officeName: selectedOffice ? officeLabel(selectedOffice) : "All Offices",
+      dateFrom,
+      dateTo,
+      accLevel,
+      detail: true,
+    });
+  };
+
+  const handleExport = () => {
+    setError("");
+
+    const params = buildParams();
+
+    if (!params) return;
+
+    const format = apiFormat(reportType);
+
+    if (!format) {
+      setError("Please select a Report Type.");
+      return;
+    }
+
+    params.append("Format", format);
+
+    exportFile(params, reportType);
+  };
+
+  const outputLabel = formatLabel(reportType);
+
   return (
-    <div
-      style={{
-        width: "100%",
-        display: "flex",
-        flexDirection: "column",
-        gap: "20px",
-      }}
-    >
-      {/* Form */}
-      <div className="card">
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "18px",
-          }}
+    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+      <div className="card" style={{ maxWidth: "100%" }}>
+        <form
+          onSubmit={handleView}
+          style={{ display: "flex", flexDirection: "column", gap: "16px" }}
         >
           {/* Office */}
           <div className="form-group">
             <label htmlFor="office" className="form-label">
               Office
             </label>
-
             <select
               id="office"
-              value={office}
-              onChange={(e) => setOffice(e.target.value)}
+              value={selectedOffice ? String(selectedOffice.officeId) : ""}
+              onChange={(e) => setOfficeId(e.target.value)}
               className="form-select"
+              disabled={officesLoading || officeOptions.length === 0}
             >
-              {OFFICES.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.id} {item.name.replace(item.id, "").trim()}
+              {officeOptions.length === 0 && (
+                <option value="">
+                  {officesLoading
+                    ? "Loading offices..."
+                    : officesError
+                      ? "Offices could not be loaded"
+                      : "No offices found"}
+                </option>
+              )}
+              {officeOptions.map((office) => (
+                <option key={office.officeId} value={office.officeId}>
+                  {officeLabel(office)}
                 </option>
               ))}
             </select>
+            {officesError && (
+              <span style={{ fontSize: "12px", color: "#b91c1c" }}>
+                {officesError}
+              </span>
+            )}
           </div>
 
-          {/* Date From */}
-          <div className="form-group">
-            <label htmlFor="dateFrom" className="form-label">
-              Date From
-            </label>
+          <DateField
+            id="dateFrom"
+            label="Date From"
+            value={dateFrom}
+            onChange={setDateFrom}
+          />
 
-            <input
-              id="dateFrom"
-              type="date"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-              className="form-input"
-            />
-          </div>
+          <DateField
+            id="dateTo"
+            label="Date To"
+            value={dateTo}
+            onChange={setDateTo}
+          />
 
-          {/* Date To */}
-          <div className="form-group">
-            <label htmlFor="dateTo" className="form-label">
-              Date To
-            </label>
-
-            <input
-              id="dateTo"
-              type="date"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-              className="form-input"
-            />
-          </div>
-
-          {/* Account Level */}
+          {/* Acc Level */}
           <div className="form-group">
             <label htmlFor="accLevel" className="form-label">
               Acc Level
             </label>
-
             <select
               id="accLevel"
               value={accLevel}
               onChange={(e) => setAccLevel(e.target.value)}
               className="form-select"
             >
-              {ACCOUNT_LEVELS.map((level) => (
+              {ACC_LEVELS.map((level) => (
                 <option key={level} value={level}>
                   {level}
                 </option>
@@ -167,126 +228,118 @@ export default function TrialBalanceReportOffice() {
             </select>
           </div>
 
-          {/* View Button */}
-          <div style={{ paddingTop: "2px" }}>
-            <button
-              type="button"
-              onClick={handleView}
-              className="btn btn-primary"
+          {/* Error */}
+          {error && (
+            <div
               style={{
-                padding: "9px 18px",
+                padding: "8px 10px",
+                borderRadius: "4px",
+                background: "#fef2f2",
+                color: "#b91c1c",
+                fontSize: "13px",
               }}
             >
-              View
+              {error}
+            </div>
+          )}
+
+          <div className="form-actions">
+            <button
+              type="submit"
+              className="btn btn-primary"
+              style={{ padding: "8px 20px" }}
+              disabled={busy}
+            >
+              {loading ? "Loading..." : "View"}
             </button>
           </div>
-        </div>
+        </form>
       </div>
 
-      {/* Result */}
-      {showResult && (
-        <div className="card">
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "16px",
-            }}
-          >
-            <div>
-              <h2
-                style={{
-                  margin: 0,
-                  fontSize: "18px",
-                  fontWeight: 700,
-                }}
-              >
-                Trial Balance
-              </h2>
-
-              <p
-                style={{
-                  margin: "5px 0 0",
-                  color: "#64748b",
-                  fontSize: "13px",
-                }}
-              >
-                Office:{" "}
-                <strong>
-                  {OFFICES.find((x) => x.id === office)?.name}
-                </strong>
-              </p>
-
-              <p
-                style={{
-                  margin: "3px 0 0",
-                  color: "#64748b",
-                  fontSize: "13px",
-                }}
-              >
-                Date: {dateFrom} to {dateTo}
-              </p>
-            </div>
+      {/* Results */}
+      {report && heading && (
+        <div className="card" style={{ maxWidth: "100%" }}>
+          <div style={{ textAlign: "center", marginBottom: "16px" }}>
+            <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 700 }}>
+              {REPORT_TITLE}
+            </h2>
+            <p
+              style={{ margin: "4px 0 0", fontSize: "13px", color: "#64748b" }}
+            >
+              {heading.officeName}
+            </p>
+            <p
+              style={{ margin: "2px 0 0", fontSize: "13px", color: "#64748b" }}
+            >
+              Date From {heading.dateFrom} To {heading.dateTo}
+            </p>
+            <p
+              style={{ margin: "2px 0 0", fontSize: "13px", color: "#64748b" }}
+            >
+              Acc Level {heading.accLevel}
+            </p>
           </div>
 
-          {/* Temporary result table */}
-          <div className="table-wrapper">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Account Code</th>
-                  <th>Account Head</th>
-                  <th>Debit</th>
-                  <th>Credit</th>
-                </tr>
-              </thead>
+          {report.rows.length > 0 ? (
+            <>
+              {/* The form keeps to the four fields the legacy screen has,
+                  so the file formats live with the report they export. */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "flex-end",
+                  gap: "8px",
+                  marginBottom: "8px",
+                }}
+              >
+                <select
+                  aria-label="Report Type"
+                  value={reportType}
+                  onChange={(e) => setReportType(e.target.value)}
+                  className="form-select"
+                  style={{ width: "auto" }}
+                >
+                  {REPORT_TYPES.map((rt) => (
+                    <option key={rt.value} value={rt.value}>
+                      {rt.label}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={handleExport}
+                  className="btn btn-primary"
+                  style={{ padding: "8px 20px", whiteSpace: "nowrap" }}
+                  disabled={busy}
+                >
+                  {generating ? `Generating ${outputLabel}...` : "Export"}
+                </button>
+              </div>
 
-              <tbody>
-                <tr>
-                  <td>1001</td>
-                  <td>Cash</td>
-                  <td>25,000.00</td>
-                  <td>0.00</td>
-                </tr>
+              <TrialBalanceTable sections={sections} totals={report.totals} />
 
-                <tr>
-                  <td>1002</td>
-                  <td>Bank Account</td>
-                  <td>50,000.00</td>
-                  <td>0.00</td>
-                </tr>
-
-                <tr>
-                  <td>2001</td>
-                  <td>Accounts Payable</td>
-                  <td>0.00</td>
-                  <td>30,000.00</td>
-                </tr>
-
-                <tr>
-                  <td>3001</td>
-                  <td>Capital</td>
-                  <td>0.00</td>
-                  <td>45,000.00</td>
-                </tr>
-
-                <tr>
-                  <td>4001</td>
-                  <td>Sales Revenue</td>
-                  <td>0.00</td>
-                  <td>40,000.00</td>
-                </tr>
-
-                <tr>
-                  <td>5001</td>
-                  <td>Office Expenses</td>
-                  <td>15,000.00</td>
-                  <td>0.00</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+              {/* Worth saying out loud: a trial balance that does not
+                  balance is the point of running one. */}
+              {!report.totals.isBalanced && (
+                <p
+                  style={{
+                    marginTop: "12px",
+                    fontSize: "13px",
+                    color: "#b45309",
+                  }}
+                >
+                  Debit and credit closing totals differ by{" "}
+                  {formatAmount(report.totals.balanceDifference)}.
+                </p>
+              )}
+            </>
+          ) : (
+            <p style={{ fontSize: "13px", color: "#64748b" }}>
+              No vouchers were posted in this date range for the selected
+              office and Acc Level.
+            </p>
+          )}
         </div>
       )}
     </div>

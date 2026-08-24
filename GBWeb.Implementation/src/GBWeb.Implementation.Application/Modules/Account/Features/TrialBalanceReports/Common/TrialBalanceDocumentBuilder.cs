@@ -20,11 +20,28 @@ internal static class TrialBalanceDocumentBuilder
     /// Account Code wise: consolidated across offices, so there are no
     /// office blocks — one unbanded section of account head groups.
     /// </summary>
+    /// <param name="scopeName">
+    /// Office selection to name on the statement line. Only the computed
+    /// reports pass one; the snapshot covers a single office and has
+    /// nothing to say here.
+    /// </param>
+    /// <param name="detail">
+    /// False prints one line per account head with no member lines and no
+    /// "_Total" line, which is the Summary view.
+    /// </param>
+    /// <param name="fromSnapshot">
+    /// True discloses the snapshot date the figures were taken from.
+    /// A computed report has no snapshot — its figures cover the printed
+    /// date range exactly, so it passes false and the line is dropped.
+    /// </param>
     public static TrialBalanceExportDocument FromAccCode(
         TrialBalanceAccCodeReportDto report,
         string companyName,
         DateTime? dateFrom,
-        DateTime dateTo)
+        DateTime dateTo,
+        string? scopeName = null,
+        bool detail = true,
+        bool fromSnapshot = true)
     {
         var sections = report.Rows.Count == 0
             ? Array.Empty<TrialBalanceExportSection>()
@@ -37,17 +54,19 @@ internal static class TrialBalanceDocumentBuilder
                         row => row.TopLevelCode,
                         row => row.TopLevelName,
                         row => row.AccCode,
-                        row => row.AccName))
+                        row => row.AccName,
+                        detail))
             };
 
         return new TrialBalanceExportDocument(
             companyName,
             StatementTitle(
-                report.Rows.Select(row => row.TopLevelName)),
+                report.Rows.Select(row => row.TopLevelName),
+                scopeName),
             ReportTitle,
             dateFrom,
             dateTo,
-            report.AsOnDate,
+            fromSnapshot ? report.AsOnDate : null,
             sections,
             TrialBalanceColumns.ToRow(
                 null,
@@ -60,11 +79,28 @@ internal static class TrialBalanceDocumentBuilder
     /// Office wise: one block per office, each headed by its office
     /// code and name.
     /// </summary>
+    /// <param name="scopeName">
+    /// Office selection to name on the statement line. Only the computed
+    /// reports pass one; the snapshot covers a single office and has
+    /// nothing to say here.
+    /// </param>
+    /// <param name="detail">
+    /// False prints one line per account head with no member lines and no
+    /// "_Total" line, which is the Summary view.
+    /// </param>
+    /// <param name="fromSnapshot">
+    /// True discloses the snapshot date the figures were taken from.
+    /// A computed report has no snapshot — its figures cover the printed
+    /// date range exactly, so it passes false and the line is dropped.
+    /// </param>
     public static TrialBalanceExportDocument FromOffice(
         TrialBalanceOfficeReportDto report,
         string companyName,
         DateTime? dateFrom,
-        DateTime dateTo)
+        DateTime dateTo,
+        string? scopeName = null,
+        bool detail = true,
+        bool fromSnapshot = true)
     {
         var sections = report.Rows
             .GroupBy(row => new
@@ -79,17 +115,19 @@ internal static class TrialBalanceDocumentBuilder
                     row => row.TopLevelCode,
                     row => row.TopLevelName,
                     row => row.AccCode,
-                    row => row.AccName)))
+                    row => row.AccName,
+                    detail)))
             .ToList();
 
         return new TrialBalanceExportDocument(
             companyName,
             StatementTitle(
-                report.Rows.Select(row => row.TopLevelName)),
+                report.Rows.Select(row => row.TopLevelName),
+                scopeName),
             ReportTitle,
             dateFrom,
             dateTo,
-            report.AsOnDate,
+            fromSnapshot ? report.AsOnDate : null,
             sections,
             TrialBalanceColumns.ToRow(
                 null,
@@ -102,12 +140,20 @@ internal static class TrialBalanceDocumentBuilder
     /// Detail lines grouped by account head, each group closed by a
     /// "_Total" line. Serial numbers restart in every section.
     /// </summary>
+    /// <remarks>
+    /// In the Summary view the caller has already rolled the figures up
+    /// to the account head, so every group holds a single line that is
+    /// its own total. Printing a "_Total" under it would repeat the same
+    /// numbers on the next row, which is why the subtotals are dropped
+    /// rather than the member lines.
+    /// </remarks>
     private static List<TrialBalanceExportRow> BuildRows<TRow>(
         IReadOnlyList<TRow> rows,
         Func<TRow, string?> headCode,
         Func<TRow, string?> headName,
         Func<TRow, string?> accountCode,
-        Func<TRow, string?> accountName)
+        Func<TRow, string?> accountName,
+        bool detail)
         where TRow : ITrialBalanceAmounts
     {
         var printed = new List<TrialBalanceExportRow>();
@@ -132,6 +178,11 @@ internal static class TrialBalanceDocumentBuilder
                     row));
 
                 serial++;
+            }
+
+            if (!detail)
+            {
+                continue;
             }
 
             printed.Add(TrialBalanceColumns.ToRow(
@@ -162,8 +213,14 @@ internal static class TrialBalanceDocumentBuilder
     /// legacy report shows once an account has been picked. A report
     /// spanning several heads falls back to a generic title.
     /// </summary>
+    /// <remarks>
+    /// A computed report also names the office selection, because the
+    /// account code wise layout has no office blocks to show it and a
+    /// zone total is indistinguishable from a consolidation otherwise.
+    /// </remarks>
     private static string StatementTitle(
-        IEnumerable<string?> headNames)
+        IEnumerable<string?> headNames,
+        string? scopeName)
     {
         var distinct = headNames
             .Where(name => !string.IsNullOrWhiteSpace(name))
@@ -171,8 +228,12 @@ internal static class TrialBalanceDocumentBuilder
             .Take(2)
             .ToList();
 
-        return distinct.Count == 1
+        var title = distinct.Count == 1
             ? $"{distinct[0]} Statement"
             : "Trial Balance Statement";
+
+        return string.IsNullOrWhiteSpace(scopeName)
+            ? title
+            : $"{title} - {scopeName.Trim()}";
     }
 }

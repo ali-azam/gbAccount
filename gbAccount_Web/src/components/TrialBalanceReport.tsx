@@ -1,807 +1,502 @@
 "use client";
 
-import React, { useRef, useState } from "react";
-import { Calendar } from "lucide-react";
+/**
+ * Reports ▸ Trial Balance — the legacy AccTrialBalance/Index screen.
+ *
+ * The accounts consolidated across whichever offices are in scope, built
+ * from the vouchers so any date range and any office in the hierarchy can
+ * be asked for.
+ *
+ * This is the screen that filters down the office hierarchy. Office Trial
+ * Balance names a single office instead and shows the same figures broken
+ * out office by office; the table, the column arithmetic and the fetching
+ * are shared with it.
+ */
 
-interface TrialBalanceRow {
-  accountCode: string;
-  accountHead: string;
-  debit: number;
-  credit: number;
-}
+import React, { useMemo, useState } from "react";
 
-const formatDateString = (rawDate: string) => {
-  if (!rawDate) return "";
+import DateField from "./DateField";
+import TrialBalanceTable from "./TrialBalanceTable";
+import { today } from "@/lib/reportDates";
+import {
+  childOffices,
+  officeLabel,
+  useOffices,
+  type OfficeOption,
+} from "@/lib/useOffices";
+import {
+  REPORT_TYPES,
+  apiFormat,
+  formatAmount,
+  formatLabel,
+} from "@/lib/trialBalanceExport";
+import { REPORT_VIEWS } from "@/lib/trialBalance";
+import {
+  appendDateRange,
+  useTrialBalanceReport,
+} from "@/lib/useTrialBalanceReport";
 
-  const parts = rawDate.split("-");
+/** Matches the heading the PDF and Excel exports print. */
+const REPORT_TITLE = "Account Head-wise Trial Balance";
 
-  if (parts.length === 3) {
-    const year = parts[0];
-    const monthIndex = parseInt(parts[1], 10) - 1;
-    const day = parts[2];
-
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-
-    if (monthIndex >= 0 && monthIndex < 12) {
-      return `${day.padStart(2, "0")}-${months[monthIndex]}-${year}`;
-    }
-  }
-
-  return rawDate;
-};
-
-const today = () => {
-  const d = new Date();
-
-  const day = String(d.getDate()).padStart(2, "0");
-
-  const monthNames = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
-
-  const month = monthNames[d.getMonth()];
-  const year = d.getFullYear();
-
-  return `${day}-${month}-${year}`;
-};
+const ACC_LEVELS = ["1", "2", "3", "4", "5"];
 
 export default function TrialBalanceReport() {
-  /*
-   * ==========================================
-   * FILTER STATE
-   * ==========================================
-   */
+  const {
+    offices,
+    loading: officesLoading,
+    error: officesError,
+  } = useOffices();
 
-  const [headOffice, setHeadOffice] = useState(
-    "100000 GRAM Consolidated"
-  );
-
-  const [zoneOffice, setZoneOffice] = useState(
-    "01 Shibchar"
-  );
-
-  const [areaOffice, setAreaOffice] = useState(
-    "101 Shibchar"
-  );
-
-  const [office, setOffice] = useState(
-    "0001 GRAM"
-  );
-
+  const [zoneCode, setZoneCode] = useState("");
+  const [areaCode, setAreaCode] = useState("");
+  const [officeCode, setOfficeCode] = useState("");
   const [dateFrom, setDateFrom] = useState(today);
   const [dateTo, setDateTo] = useState(today);
-
   const [accLevel, setAccLevel] = useState("3");
+  const [exceptHeadOffice, setExceptHeadOffice] = useState(false);
+  const [exceptProjectOffice, setExceptProjectOffice] = useState(false);
+  const [reportView, setReportView] = useState("Detail");
+  const [reportType, setReportType] = useState("pdf");
 
-  const [exceptHeadOffice, setExceptHeadOffice] =
-    useState(false);
+  const {
+    report,
+    heading,
+    sections,
+    loading,
+    generating,
+    busy,
+    error,
+    setError,
+    view,
+    exportFile,
+  } = useTrialBalanceReport("account-code");
 
-  const [exceptProjectOffice, setExceptProjectOffice] =
-    useState(false);
+  // The organisation runs a single head office, so it is shown but never
+  // chosen — everything below it cascades from there.
+  const headOffice = useMemo(
+    () => offices.find((office) => office.officeLevel === 1) ?? null,
+    [offices]
+  );
 
-  const [reportView, setReportView] = useState("");
+  const zoneOptions = useMemo(
+    () => childOffices(offices, 2, headOffice?.officeCode ?? ""),
+    [offices, headOffice]
+  );
 
-  /*
-   * ==========================================
-   * REPORT STATE
-   * ==========================================
+  const areaOptions = useMemo(
+    () => childOffices(offices, 3, zoneCode),
+    [offices, zoneCode]
+  );
+
+  const officeOptions = useMemo(
+    () => childOffices(offices, 4, areaCode),
+    [offices, areaCode]
+  );
+
+  /**
+   * The deepest office chosen. The API reports an office together with
+   * everything beneath it, so picking a zone reports the whole zone and
+   * leaving all three empty reports the whole organisation.
    */
+  const selectedOffice: OfficeOption | null = useMemo(() => {
+    const byCode = (level: number, code: string) =>
+      code
+        ? offices.find(
+            (office) =>
+              office.officeLevel === level && office.officeCode === code
+          ) ?? null
+        : null;
 
-  const [results, setResults] =
-    useState<TrialBalanceRow[] | null>(null);
+    return (
+      byCode(4, officeCode) ??
+      byCode(3, areaCode) ??
+      byCode(2, zoneCode) ??
+      headOffice
+    );
+  }, [offices, officeCode, areaCode, zoneCode, headOffice]);
 
-  const [loading, setLoading] = useState(false);
-
-  /*
-   * ==========================================
-   * DATE PICKERS
-   * ==========================================
+  /**
+   * The query string, or null when the form is not filled in well enough
+   * to send. The message goes on screen.
    */
+  const buildParams = (): URLSearchParams | null => {
+    const params = new URLSearchParams();
+    const dateError = appendDateRange(params, dateFrom, dateTo);
 
-  const fromPickerRef =
-    useRef<HTMLInputElement>(null);
-
-  const toPickerRef =
-    useRef<HTMLInputElement>(null);
-
-  /*
-   * ==========================================
-   * VIEW REPORT
-   *
-   * Current gbAccount repository does not yet
-   * have a Trial Balance API endpoint.
-   *
-   * Therefore this uses sample data for now,
-   * just like the existing report screens.
-   * ==========================================
-   */
-
-  const handleView = (
-    e: React.FormEvent
-  ) => {
-    e.preventDefault();
-
-    setLoading(true);
-
-    /*
-     * Temporary test data.
-     *
-     * No Number() / parseFloat() conversion is
-     * being done here, so there is no NaN.
-     */
-
-    const hardCodedResults: TrialBalanceRow[] = [
-      {
-        accountCode: "1001",
-        accountHead: "Cash",
-        debit: 25000,
-        credit: 0,
-      },
-      {
-        accountCode: "1002",
-        accountHead: "Bank Account",
-        debit: 50000,
-        credit: 0,
-      },
-      {
-        accountCode: "2001",
-        accountHead: "Accounts Payable",
-        debit: 0,
-        credit: 30000,
-      },
-      {
-        accountCode: "3001",
-        accountHead: "Capital",
-        debit: 0,
-        credit: 45000,
-      },
-      {
-        accountCode: "4001",
-        accountHead: "Sales Revenue",
-        debit: 0,
-        credit: 40000,
-      },
-      {
-        accountCode: "5001",
-        accountHead: "Office Expenses",
-        debit: 15000,
-        credit: 0,
-      },
-    ];
-
-    setResults(hardCodedResults);
-
-    setLoading(false);
-  };
-
-  /*
-   * ==========================================
-   * NUMBER FORMAT
-   * ==========================================
-   */
-
-  const formatAmount = (value: number) => {
-    if (!Number.isFinite(value)) {
-      return "0.00";
+    if (dateError) {
+      setError(dateError);
+      return null;
     }
 
-    return value.toLocaleString("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
+    if (selectedOffice) {
+      params.append("OfficeId", String(selectedOffice.officeId));
+    }
+
+    // Everything before Date From makes up the opening balance and
+    // everything within the range the movement, so Acc Level decides which
+    // account the postings are gathered under rather than filtering them.
+    params.append("AccLevel", accLevel);
+    params.append("ExceptHeadOffice", String(exceptHeadOffice));
+    params.append("ExceptProjectOffice", String(exceptProjectOffice));
+    params.append("DetailLevel", reportView);
+
+    return params;
+  };
+
+  const handleView = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    const params = buildParams();
+
+    if (!params) return;
+
+    view(params, {
+      officeName: selectedOffice ? officeLabel(selectedOffice) : "All Offices",
+      dateFrom,
+      dateTo,
+      accLevel,
+      detail: reportView === "Detail",
     });
   };
 
-  /*
-   * ==========================================
-   * TOTALS
-   * ==========================================
-   */
+  const handleExport = () => {
+    setError("");
 
-  const totalDebit =
-    results?.reduce(
-      (total, row) => total + row.debit,
-      0
-    ) ?? 0;
+    const params = buildParams();
 
-  const totalCredit =
-    results?.reduce(
-      (total, row) => total + row.credit,
-      0
-    ) ?? 0;
+    if (!params) return;
 
-  /*
-   * ==========================================
-   * UI
-   * ==========================================
-   */
+    const format = apiFormat(reportType);
+
+    if (!format) {
+      setError("Please select a Report Type.");
+      return;
+    }
+
+    params.append("Format", format);
+
+    exportFile(params, reportType);
+  };
+
+  const outputLabel = formatLabel(reportType);
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "16px",
-      }}
-    >
-      {/* ======================================
-          FILTER CARD
-      ======================================= */}
-
-      <div
-        className="card"
-        style={{
-          maxWidth: "100%",
-        }}
-      >
+    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+      <div className="card" style={{ maxWidth: "100%" }}>
         <form
           onSubmit={handleView}
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "16px",
-          }}
+          style={{ display: "flex", flexDirection: "column", gap: "16px" }}
         >
-
-          {/* ================================
-              HEAD OFFICE
-          ================================= */}
-
+          {/* Head Office */}
           <div className="form-group">
-            <label
-              htmlFor="headOffice"
-              className="form-label"
-            >
+            <label htmlFor="headOffice" className="form-label">
               Head Office
             </label>
-
             <select
               id="headOffice"
-              value={headOffice}
-              onChange={(e) =>
-                setHeadOffice(e.target.value)
-              }
-              className="form-select"
+              value={headOffice?.officeCode ?? ""}
+              onChange={() => {}}
+              disabled
+              className="form-select bg-disabled"
             >
-              <option value="100000 GRAM Consolidated">
-                100000 GRAM Consolidated
+              <option value="">
+                {officesLoading
+                  ? "Loading offices..."
+                  : officesError
+                    ? "Offices could not be loaded"
+                    : "No head office found"}
               </option>
-
-              <option value="100001 GRAM Head Office">
-                100001 GRAM Head Office
-              </option>
-
-              <option value="100002 GRAM Regional Office">
-                100002 GRAM Regional Office
-              </option>
+              {headOffice && (
+                <option value={headOffice.officeCode}>
+                  {officeLabel(headOffice)}
+                </option>
+              )}
             </select>
+            {officesError && (
+              <span style={{ fontSize: "12px", color: "#b91c1c" }}>
+                {officesError}
+              </span>
+            )}
           </div>
 
-          {/* ================================
-              ZONE OFFICE
-          ================================= */}
-
+          {/* Zone Office */}
           <div className="form-group">
-            <label
-              htmlFor="zoneOffice"
-              className="form-label"
-            >
+            <label htmlFor="zoneOffice" className="form-label">
               Zone Office
             </label>
-
             <select
               id="zoneOffice"
-              value={zoneOffice}
-              onChange={(e) =>
-                setZoneOffice(e.target.value)
-              }
+              value={zoneCode}
+              onChange={(e) => {
+                setZoneCode(e.target.value);
+                setAreaCode("");
+                setOfficeCode("");
+              }}
               className="form-select"
+              disabled={officesLoading}
             >
-              <option value="01 Shibchar">
-                01 Shibchar
-              </option>
-
-              <option value="02 Dhaka">
-                02 Dhaka
-              </option>
-
-              <option value="03 Faridpur">
-                03 Faridpur
-              </option>
+              <option value="">All Zones</option>
+              {zoneOptions.map((zone) => (
+                <option key={zone.officeId} value={zone.officeCode}>
+                  {officeLabel(zone)}
+                </option>
+              ))}
             </select>
           </div>
 
-          {/* ================================
-              AREA OFFICE
-          ================================= */}
-
+          {/* Area Office */}
           <div className="form-group">
-            <label
-              htmlFor="areaOffice"
-              className="form-label"
-            >
+            <label htmlFor="areaOffice" className="form-label">
               Area Office
             </label>
-
             <select
               id="areaOffice"
-              value={areaOffice}
-              onChange={(e) =>
-                setAreaOffice(e.target.value)
-              }
+              value={areaCode}
+              onChange={(e) => {
+                setAreaCode(e.target.value);
+                setOfficeCode("");
+              }}
               className="form-select"
+              disabled={!zoneCode}
             >
-              <option value="101 Shibchar">
-                101 Shibchar
+              <option value="">
+                {zoneCode ? "All Areas" : "Select a Zone Office first"}
               </option>
-
-              <option value="102 Madaripur">
-                102 Madaripur
-              </option>
-
-              <option value="103 Rajoir">
-                103 Rajoir
-              </option>
+              {areaOptions.map((area) => (
+                <option key={area.officeId} value={area.officeCode}>
+                  {officeLabel(area)}
+                </option>
+              ))}
             </select>
           </div>
 
-          {/* ================================
-              OFFICE
-          ================================= */}
-
+          {/* Office */}
           <div className="form-group">
-            <label
-              htmlFor="office"
-              className="form-label"
-            >
+            <label htmlFor="office" className="form-label">
               Office
             </label>
-
             <select
               id="office"
-              value={office}
-              onChange={(e) =>
-                setOffice(e.target.value)
-              }
+              value={officeCode}
+              onChange={(e) => setOfficeCode(e.target.value)}
               className="form-select"
+              disabled={!areaCode}
             >
-              <option value="0001 GRAM">
-                0001 GRAM
+              <option value="">
+                {areaCode ? "All Offices" : "Select an Area Office first"}
               </option>
-
-              <option value="0002 Shibchar">
-                0002 Shibchar
-              </option>
-
-              <option value="0003 Madaripur">
-                0003 Madaripur
-              </option>
+              {officeOptions.map((branch) => (
+                <option key={branch.officeId} value={branch.officeCode}>
+                  {officeLabel(branch)}
+                </option>
+              ))}
             </select>
           </div>
 
-          {/* ================================
-              DATE FROM
-          ================================= */}
+          <DateField
+            id="dateFrom"
+            label="Date From"
+            value={dateFrom}
+            onChange={setDateFrom}
+          />
 
+          <DateField
+            id="dateTo"
+            label="Date To"
+            value={dateTo}
+            onChange={setDateTo}
+          />
+
+          {/* Acc Level */}
           <div className="form-group">
-            <label
-              htmlFor="dateFrom"
-              className="form-label"
-            >
-              Date From
-            </label>
-
-            <div
-              style={{
-                position: "relative",
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              <input
-                type="text"
-                id="dateFrom"
-                value={dateFrom}
-                onChange={(e) =>
-                  setDateFrom(e.target.value)
-                }
-                className="form-input"
-                style={{
-                  paddingRight: "36px",
-                }}
-              />
-
-              <button
-                type="button"
-                onClick={() =>
-                  fromPickerRef.current?.showPicker()
-                }
-                style={{
-                  position: "absolute",
-                  right: "10px",
-                  background: "transparent",
-                  border: "none",
-                  cursor: "pointer",
-                  color: "#64748b",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: 0,
-                  zIndex: 10,
-                  width: "20px",
-                  height: "20px",
-                }}
-              >
-                <Calendar size={16} />
-              </button>
-
-              <input
-                type="date"
-                ref={fromPickerRef}
-                style={{
-                  position: "absolute",
-                  right: 0,
-                  width: 0,
-                  height: 0,
-                  opacity: 0,
-                  border: "none",
-                  padding: 0,
-                  pointerEvents: "none",
-                }}
-                onChange={(e) => {
-                  if (e.target.value) {
-                    setDateFrom(
-                      formatDateString(
-                        e.target.value
-                      )
-                    );
-                  }
-                }}
-              />
-            </div>
-          </div>
-
-          {/* ================================
-              DATE TO
-          ================================= */}
-
-          <div className="form-group">
-            <label
-              htmlFor="dateTo"
-              className="form-label"
-            >
-              Date To
-            </label>
-
-            <div
-              style={{
-                position: "relative",
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              <input
-                type="text"
-                id="dateTo"
-                value={dateTo}
-                onChange={(e) =>
-                  setDateTo(e.target.value)
-                }
-                className="form-input"
-                style={{
-                  paddingRight: "36px",
-                }}
-              />
-
-              <button
-                type="button"
-                onClick={() =>
-                  toPickerRef.current?.showPicker()
-                }
-                style={{
-                  position: "absolute",
-                  right: "10px",
-                  background: "transparent",
-                  border: "none",
-                  cursor: "pointer",
-                  color: "#64748b",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: 0,
-                  zIndex: 10,
-                  width: "20px",
-                  height: "20px",
-                }}
-              >
-                <Calendar size={16} />
-              </button>
-
-              <input
-                type="date"
-                ref={toPickerRef}
-                style={{
-                  position: "absolute",
-                  right: 0,
-                  width: 0,
-                  height: 0,
-                  opacity: 0,
-                  border: "none",
-                  padding: 0,
-                  pointerEvents: "none",
-                }}
-                onChange={(e) => {
-                  if (e.target.value) {
-                    setDateTo(
-                      formatDateString(
-                        e.target.value
-                      )
-                    );
-                  }
-                }}
-              />
-            </div>
-          </div>
-
-          {/* ================================
-              ACC LEVEL
-          ================================= */}
-
-          <div className="form-group">
-            <label
-              htmlFor="accLevel"
-              className="form-label"
-            >
+            <label htmlFor="accLevel" className="form-label">
               Acc Level
             </label>
-
             <select
               id="accLevel"
               value={accLevel}
-              onChange={(e) =>
-                setAccLevel(e.target.value)
-              }
+              onChange={(e) => setAccLevel(e.target.value)}
               className="form-select"
             >
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-              <option value="5">5</option>
+              {ACC_LEVELS.map((level) => (
+                <option key={level} value={level}>
+                  {level}
+                </option>
+              ))}
             </select>
           </div>
 
-          {/* ================================
-              EXCEPT HEAD OFFICE
-          ================================= */}
-
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "50px",
-            }}
-          >
-            <input
-              type="checkbox"
-              id="exceptHeadOffice"
-              checked={exceptHeadOffice}
-              onChange={(e) =>
-                setExceptHeadOffice(
-                  e.target.checked
-                )
-              }
-            />
-
+          {/* Except HeadOffice */}
+          <div className="form-group">
             <label
-              htmlFor="exceptHeadOffice"
               className="form-label"
               style={{
-                margin: 0,
-                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+                marginBottom: 0,
+                fontWeight: 500,
               }}
             >
+              <input
+                type="checkbox"
+                checked={exceptHeadOffice}
+                onChange={(e) => setExceptHeadOffice(e.target.checked)}
+                style={{ width: "16px", height: "16px" }}
+              />
               Except HeadOffice
             </label>
           </div>
 
-          {/* ================================
-              EXCEPT PROJECT OFFICE
-          ================================= */}
-
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "50px",
-            }}
-          >
-            <input
-              type="checkbox"
-              id="exceptProjectOffice"
-              checked={exceptProjectOffice}
-              onChange={(e) =>
-                setExceptProjectOffice(
-                  e.target.checked
-                )
-              }
-            />
-
+          {/* Except ProjectOffice */}
+          <div className="form-group">
             <label
-              htmlFor="exceptProjectOffice"
               className="form-label"
               style={{
-                margin: 0,
-                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+                marginBottom: 0,
+                fontWeight: 500,
               }}
             >
+              <input
+                type="checkbox"
+                checked={exceptProjectOffice}
+                onChange={(e) => setExceptProjectOffice(e.target.checked)}
+                style={{ width: "16px", height: "16px" }}
+              />
               Except ProjectOffice
             </label>
           </div>
 
-          {/* ================================
-              REPORT VIEW
-          ================================= */}
-
-          <div
-            className="form-group"
-            style={{
-              maxWidth: "350px",
-            }}
-          >
-            <label
-              htmlFor="reportView"
-              className="form-label"
-            >
+          {/* Report View */}
+          <div className="form-group">
+            <label htmlFor="reportView" className="form-label">
               Report View
             </label>
-
             <select
               id="reportView"
               value={reportView}
-              onChange={(e) =>
-                setReportView(e.target.value)
-              }
+              onChange={(e) => setReportView(e.target.value)}
               className="form-select"
             >
-              <option value="">
-                Select
-              </option>
-
-              <option value="detail">
-                Detail
-              </option>
-
-              <option value="summary">
-                Summary
-              </option>
+              {REPORT_VIEWS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </div>
 
-          {/* ================================
-              VIEW BUTTON
-          ================================= */}
+          {/* Report Type */}
+          <div className="form-group">
+            <label htmlFor="reportType" className="form-label">
+              Report Type
+            </label>
+            <select
+              id="reportType"
+              value={reportType}
+              onChange={(e) => setReportType(e.target.value)}
+              className="form-select"
+            >
+              {REPORT_TYPES.map((rt) => (
+                <option key={rt.value} value={rt.value}>
+                  {rt.label}
+                </option>
+              ))}
+            </select>
+          </div>
 
-          <div>
+          {/* Error */}
+          {error && (
+            <div
+              style={{
+                padding: "8px 10px",
+                borderRadius: "4px",
+                background: "#fef2f2",
+                color: "#b91c1c",
+                fontSize: "13px",
+              }}
+            >
+              {error}
+            </div>
+          )}
+
+          <div className="form-actions" style={{ gap: "12px" }}>
             <button
               type="submit"
               className="btn btn-primary"
-              disabled={loading}
+              style={{ padding: "8px 20px" }}
+              disabled={busy}
             >
               {loading ? "Loading..." : "View"}
+            </button>
+            <button
+              type="button"
+              onClick={handleExport}
+              className="btn btn-primary"
+              style={{ padding: "8px 20px" }}
+              disabled={busy}
+            >
+              {generating ? `Generating ${outputLabel}...` : "Export"}
             </button>
           </div>
         </form>
       </div>
 
-      {/* ======================================
-          RESULTS
-      ======================================= */}
-
-      {results !== null && (
-        <div
-          className="card"
-          style={{
-            maxWidth: "100%",
-          }}
-        >
-          <div className="table-wrapper">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Account Code</th>
-                  <th>Account Head</th>
-                  <th>Debit</th>
-                  <th>Credit</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {results.map((row) => (
-                  <tr
-                    key={row.accountCode}
-                  >
-                    <td>
-                      {row.accountCode}
-                    </td>
-
-                    <td>
-                      {row.accountHead}
-                    </td>
-
-                    <td>
-                      {formatAmount(
-                        row.debit
-                      )}
-                    </td>
-
-                    <td>
-                      {formatAmount(
-                        row.credit
-                      )}
-                    </td>
-                  </tr>
-                ))}
-
-                {/* TOTAL */}
-
-                <tr>
-                  <td
-                    colSpan={2}
-                    style={{
-                      textAlign: "right",
-                      fontWeight: 700,
-                    }}
-                  >
-                    Total
-                  </td>
-
-                  <td
-                    style={{
-                      fontWeight: 700,
-                    }}
-                  >
-                    {formatAmount(
-                      totalDebit
-                    )}
-                  </td>
-
-                  <td
-                    style={{
-                      fontWeight: 700,
-                    }}
-                  >
-                    {formatAmount(
-                      totalCredit
-                    )}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+      {/* Results */}
+      {report && heading && (
+        <div className="card" style={{ maxWidth: "100%" }}>
+          <div style={{ textAlign: "center", marginBottom: "16px" }}>
+            <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 700 }}>
+              {REPORT_TITLE}
+            </h2>
+            <p
+              style={{ margin: "4px 0 0", fontSize: "13px", color: "#64748b" }}
+            >
+              {heading.officeName}
+            </p>
+            <p
+              style={{ margin: "2px 0 0", fontSize: "13px", color: "#64748b" }}
+            >
+              Date From {heading.dateFrom} To {heading.dateTo}
+            </p>
+            <p
+              style={{ margin: "2px 0 0", fontSize: "13px", color: "#64748b" }}
+            >
+              Acc Level {heading.accLevel} &middot;{" "}
+              {heading.detail ? "Detail" : "Summary"}
+            </p>
           </div>
+
+          {report.rows.length > 0 ? (
+            <>
+              <TrialBalanceTable sections={sections} totals={report.totals} />
+
+              {/* Worth saying out loud: a trial balance that does not
+                  balance is the point of running one. */}
+              {!report.totals.isBalanced && (
+                <p
+                  style={{
+                    marginTop: "12px",
+                    fontSize: "13px",
+                    color: "#b45309",
+                  }}
+                >
+                  Debit and credit closing totals differ by{" "}
+                  {formatAmount(report.totals.balanceDifference)}.
+                </p>
+              )}
+            </>
+          ) : (
+            <p style={{ fontSize: "13px", color: "#64748b" }}>
+              No vouchers were posted in this date range for the selected
+              office and Acc Level.
+            </p>
+          )}
         </div>
       )}
     </div>
